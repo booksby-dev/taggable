@@ -24,10 +24,8 @@ jobs:
       - name: Change directory to example
         run: cd example
 
-      - name: Install dependencies
-        run: flutter pub get
-
       - name: Build web app
+        working-directory: example
         run: flutter build web --base-href /taggable/
 
       - name: Deploy to GitHub Pages
