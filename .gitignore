@@ -59,7 +59,6 @@ build/
 # Files and folders in the example directory
 /example/pubspec.lock
 /example/android/
-/example/web/
 
 # FVM Version Cache
 .fvm/
