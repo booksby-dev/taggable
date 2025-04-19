@@ -21,8 +21,9 @@ jobs:
         with:
           flutter-version: '3.29.2'
 
-      - name: Change directory to example
-        run: cd example
+      - name: Install dependencies
+        working-directory: example
+        run: flutter pub get
 
       - name: Build web app
         working-directory: example
