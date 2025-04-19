@@ -1,11 +1,8 @@
-import 'package:flutter/widgets.dart';
-
 /// A class that represents a distinct way of styling tags.
 class TagStyle {
   const TagStyle({
     this.prefix = '@',
     this.regExp = r'[a-zA-Z0-9]+',
-    this.textStyle,
   });
 
   /// The prefix that identifies the tag, e.g. '@' in '@tag'. Defaults to '@'.
@@ -28,8 +25,4 @@ class TagStyle {
   ///
   /// The regular expression should not contain the prefix.
   final String regExp;
-
-  /// The text style to apply to the tag in the text field.
-  @Deprecated('Use the [TagTextEditingController.textStyleBuilder] instead.')
-  final TextStyle? textStyle;
 }

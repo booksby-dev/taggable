@@ -71,6 +71,9 @@ class TagTextEditingController<T> extends TextEditingController {
   final List<TagStyle> tagStyles;
 
   /// A function that builds a text style for a taggable based on the tag style.
+  ///
+  /// If this function is not provided, the text style will be the same as the
+  /// default text style of the text field.
   final TextStyle? Function(BuildContext context, String prefix, T taggable)?
       textStyleBuilder;
 
@@ -133,6 +136,11 @@ class TagTextEditingController<T> extends TextEditingController {
 
       tmpText.write(tagText);
     }
+
+    final textAfterAllTags =
+        backendText.substring(position, backendText.length);
+    tmpText.write(textAfterAllTags);
+
     text = tmpText.toString().trimRight();
   }
 
@@ -175,7 +183,7 @@ class TagTextEditingController<T> extends TextEditingController {
 
       final textStyle =
           textStyleBuilder?.call(context, tag.style.prefix, tag.taggable) ??
-              tag.style.textStyle;
+              style;
       // The Flutter engine does not render zero-width spaces with actual zero
       // width, so we need to split the tag into two parts: the leading space
       // markers and the actual tag text, while applying a zero letter spacing

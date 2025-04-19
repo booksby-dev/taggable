@@ -117,13 +117,13 @@ class _HomePageState extends State<HomePage> {
 
   TextStyle? textStyleBuilder(
       BuildContext context, String prefix, Taggable taggable) {
-    if (taggable.id == 'hawkingUniqueId') {
-      return const TextStyle(
-        color: Colors.red,
-        decoration: TextDecoration.underline,
-        fontWeight: FontWeight.bold,
-      );
-    }
+    // if (taggable.id == 'hawkingUniqueId') {
+    //   return const TextStyle(
+    //     color: Colors.red,
+    //     decoration: TextDecoration.underline,
+    //     fontWeight: FontWeight.bold,
+    //   );
+    // }
     return switch (prefix) {
       '@' => TextStyle(
           color: Theme.of(context).colorScheme.primary,
@@ -293,6 +293,7 @@ class _HomePageState extends State<HomePage> {
                   child: TextField(
                     controller: _controller,
                     focusNode: _focusNode,
+                    maxLines: 4,
                     decoration: InputDecoration(
                       hintText: 'Type @ to tag a user or # to tag a topic',
                       helperText: 'Backend format: $backendFormat',
