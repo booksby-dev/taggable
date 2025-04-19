@@ -1,6 +1,6 @@
 ![Pub Version](https://img.shields.io/pub/v/flutter_taggable)
 
-Allow users to mention other users, insert hashtags, and tag other entities with this lightweight package. It provides a database-friendly format for easy storing and parsing of tags. The package is highly customizable and can be used with the standard `TextField` widget.
+Allow users to mention other users, insert hashtags, and tag other entities with this lightweight package. It provides a database-friendly format for easy storing and parsing of tags. The package is highly customizable and can be used with the standard `TextField` widget. Try out the [example app](https://wesselvandam.github.io/taggable/) to see it in action!
 
 <img src="https://raw.githubusercontent.com/WesselvanDam/taggable/refs/heads/main/doc/taggable_screen_recording.gif" alt="Demo Video" height="480"/>
 
