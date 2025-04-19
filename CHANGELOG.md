@@ -1,3 +1,8 @@
+## 1.1.2
+
+* Changed the package description
+* Deployed the example app to GitHub Pages
+
 ## 1.1.1
 
 * Fixed a bug where the text after the last tag would not be set correctly when using `setText` on a `TagTextEditingController` object.

@@ -60,3 +60,9 @@ build/
 /example/pubspec.lock
 /example/android/
 /example/web/
+
+# FVM Version Cache
+.fvm/
+
+# VS Code settings
+.vscode/
