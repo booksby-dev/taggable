@@ -82,6 +82,7 @@ class TagTextEditingController<T> extends TextEditingController {
 
   /// The cursor position before the last change. Used for intuitive cursor movement.
   int _previousCursorPosition = 0;
+  int _previousCursorPositionExtent = 0;
 
   /// The text formatted in backend format. Do not use `controller.text` directly.
   String get textInBackendFormat => text.replaceAll(spaceMarker, '');
@@ -161,7 +162,7 @@ class TagTextEditingController<T> extends TextEditingController {
     TextStyle? style,
     required bool withComposing,
   }) {
-    final List<TextSpan> textSpanChildren = <TextSpan>[];
+    final List<InlineSpan> textSpanChildren = <InlineSpan>[];
     int position = 0;
 
     for (final match in _getTagMatches(text)) {
@@ -190,19 +191,28 @@ class TagTextEditingController<T> extends TextEditingController {
       // to the former. This issue is tracked on the Flutter GitHub repository:
       // https://github.com/flutter/flutter/issues/160251
       final lastSpaceMarker = tagText.lastIndexOf(spaceMarker);
+
       if (lastSpaceMarker != -1) {
         textSpanChildren.add(TextSpan(
           text: tagText.substring(0, lastSpaceMarker + 1),
           style: const TextStyle(letterSpacing: 0),
         ));
-        textSpanChildren.add(TextSpan(
-          text: tagText.substring(lastSpaceMarker + 1),
-          style: textStyle,
+
+        textSpanChildren.add(WidgetSpan(
+          child: Padding(
+            padding: tag.style.padding,
+            child: Text(tagText.substring(lastSpaceMarker + 1), style: textStyle),
+          ),
         ));
         continue;
       }
 
-      textSpanChildren.add(TextSpan(text: tagText, style: textStyle));
+      textSpanChildren.add(WidgetSpan(
+        child: Padding(
+          padding: tag.style.padding,
+          child: Text(tagText, style: textStyle),
+        ),
+      ));
     }
 
     final textAfterAllTags = text.substring(position, text.length);
@@ -235,13 +245,14 @@ class TagTextEditingController<T> extends TextEditingController {
       }
 
       // The cursor is inside a tag.
-      if ((baseOffset - _previousCursorPosition).abs() == 1) {
+      if ((baseOffset + 1 - _previousCursorPosition).abs() == 1) {
         // The user probably moved into the tag with the arrow keys.
         // Move the cursor to the other side.
         // This is not flawless, as the user could have moved into the tag
         // by some other means, but this is the most common case.
+
         selection = TextSelection.collapsed(
-          offset: (baseOffset - _previousCursorPosition) == 1
+          offset: (baseOffset + 1 - _previousCursorPosition) == 1
               ? matchWithCursor.end
               : matchWithCursor.start,
         );
@@ -258,8 +269,8 @@ class TagTextEditingController<T> extends TextEditingController {
       }
 
       final lengthDifference =
-          (matchText.length - toFrontendConverter(taggable).length)
-              .clamp(0, matchText.length);
+          (matchText.length - 1); //toFrontendConverter(taggable).length)
+              //.clamp(0, matchText.length);
       selection = TextSelection.collapsed(
         offset: baseOffset - lengthDifference - matchWithCursor.start <
                 matchWithCursor.end - baseOffset
@@ -275,20 +286,24 @@ class TagTextEditingController<T> extends TextEditingController {
           .where(
               (match) => match.start < extentOffset && match.end > extentOffset)
           .firstOrNull;
+
       final baseBeforeExtent = baseOffset < extentOffset;
 
       if (matchWithBase == null && matchWithExtent == null) {
         // The selection does not cover a tag.
         return;
       }
+
+      final extentOffsetDifference = extentOffset + 1 - _previousCursorPositionExtent;
+
       // The selection covers a tag. Select the tag as a whole.
       selection = TextSelection(
         baseOffset: baseBeforeExtent
             ? matchWithBase?.start ?? baseOffset
             : matchWithBase?.end ?? baseOffset,
         extentOffset: baseBeforeExtent
-            ? matchWithExtent?.end ?? extentOffset
-            : 1 + (matchWithExtent?.start ?? (extentOffset - 1)),
+            ? extentOffsetDifference > 1 ? matchWithExtent?.end ?? extentOffset : (matchWithExtent?.start ?? extentOffset) 
+            : (matchWithExtent?.start ?? (extentOffset - 1)),
       );
     }
   }
@@ -423,5 +438,6 @@ class TagTextEditingController<T> extends TextEditingController {
   /// Updates the previous cursor position. This is used for intuitive cursor movement.
   void _updatePreviousCursorPosition() {
     _previousCursorPosition = selection.baseOffset;
+    _previousCursorPositionExtent = selection.extentOffset;
   }
 }

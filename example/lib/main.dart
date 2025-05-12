@@ -99,7 +99,7 @@ class _HomePageState extends State<HomePage> {
       toFrontendConverter: (taggable) => taggable.name,
       toBackendConverter: (taggable) => taggable.id,
       textStyleBuilder: textStyleBuilder,
-      tagStyles: const [TagStyle(prefix: '@', showPrefix: false), TagStyle(prefix: '#')],
+      tagStyles: const [TagStyle(prefix: '@', showPrefix: false), TagStyle(prefix: '#', showPrefix: false, padding: EdgeInsets.only(left: 10, right: 10))],
     );
 
     // Add a listener to update the [backendFormat] when the text changes.
@@ -129,8 +129,16 @@ class _HomePageState extends State<HomePage> {
           color: Theme.of(context).colorScheme.primary,
           fontWeight: FontWeight.bold),
       '#' => TextStyle(
-          color: Theme.of(context).colorScheme.secondary,
-          fontWeight: FontWeight.bold),
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+          background: Paint()
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = 16.0
+          ..color = Colors.green
+          ..style = PaintingStyle.stroke
+          ..strokeJoin = StrokeJoin.round,          
+          height: 1),
       _ => null,
     };
   }

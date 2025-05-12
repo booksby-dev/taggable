@@ -1,9 +1,12 @@
+import 'package:flutter/material.dart';
+
 /// A class that represents a distinct way of styling tags.
 class TagStyle {
   const TagStyle({
     this.prefix = '@',
     this.regExp = r'[a-zA-Z0-9]+',
     this.showPrefix = true,
+    this.padding = EdgeInsets.zero,
   });
 
   /// The prefix that identifies the tag, e.g. '@' in '@tag'. Defaults to '@'.
@@ -29,4 +32,6 @@ class TagStyle {
 
   /// Whether to show the prefix in the frontend.
   final bool showPrefix;
+
+  final EdgeInsets padding;
 }

@@ -27,7 +27,7 @@ class Tag<T> {
     final frontendString = toFrontendConverter(taggable);
     final backendString = toBackendConverter(taggable);
     if (isFrontend) {
-      final lengthDifference = (backendString.length - (frontendString.length + (style.showPrefix ? 0 : -1)))
+      final lengthDifference = (backendString.length)
           .clamp(0, backendString.length);
       return '${spaceMarker * lengthDifference}${style.showPrefix ? style.prefix : ''}$frontendString';
     } else {
