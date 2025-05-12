@@ -220,7 +220,7 @@ class TagTextEditingController<T> extends TextEditingController {
           alignment: PlaceholderAlignment.middle,
           child: Container(
             decoration: BoxDecoration(
-              color: allMatches.contains(tag.taggable) ? tag.style.tagColor : tag.style.highlightTagColor,
+              color: !allMatches.contains(tag.taggable) ? tag.style.tagColor : tag.style.highlightTagColor ?? tag.style.tagColor,
               borderRadius: BorderRadius.circular(4),
             ),
             padding: tag.style.tagColor == null ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 6),
