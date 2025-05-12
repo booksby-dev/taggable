@@ -198,36 +198,35 @@ class TagTextEditingController<T> extends TextEditingController {
           style: const TextStyle(letterSpacing: 0),
         ));
 
-        textSpanChildren.add(WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: Container(
-            decoration: BoxDecoration(
-              color: tag.style.tagColor,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            padding: tag.style.tagColor == null ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            child: Text(tagText.substring(lastSpaceMarker + 1), style: textStyle),
-          ),
-        ));
+        textSpanChildren.add(stylizedTag(tagText.substring(lastSpaceMarker + 1), tag.style, textStyle));
         continue;
       }
 
-      textSpanChildren.add(WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: Container(
-            decoration: BoxDecoration(
-              color: tag.style.tagColor,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            padding: tag.style.tagColor == null ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            child: Text(tagText, style: textStyle),
-          ),
-        ));
+      textSpanChildren.add(stylizedTag(tagText, tag.style, textStyle));
     }
 
     final textAfterAllTags = text.substring(position, text.length);
     textSpanChildren.add(TextSpan(text: textAfterAllTags));
     return TextSpan(style: style, children: textSpanChildren);
+  }
+
+  InlineSpan stylizedTag(String tagText, TagStyle tagStyle, TextStyle? textStyle) {
+    return WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: IntrinsicHeight(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Spacer(),
+              Container(
+                decoration: BoxDecoration(
+                  color: tagStyle.tagColor,
+                  borderRadius: BorderRadius.circular(4),
+            ),
+            padding: tagStyle.tagColor == null ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 6),
+            child: Text(tagText, style: textStyle),
+          ), const Spacer()]),
+        ));
   }
 
   /// A listener that ensures that the cursor is always outside of a tag.
