@@ -6,7 +6,8 @@ class TagStyle {
     this.prefix = '@',
     this.regExp = r'[a-zA-Z0-9]+',
     this.showPrefix = true,
-    this.tagColor
+    this.tagColor,
+    this.highlightTagColor,
   });
 
   /// The prefix that identifies the tag, e.g. '@' in '@tag'. Defaults to '@'.
@@ -35,4 +36,7 @@ class TagStyle {
 
   /// The color of the tag.
   final Color? tagColor;
+
+  /// The color of the tag when it is highlighted.
+  final Color? highlightTagColor;
 }

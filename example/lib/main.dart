@@ -127,11 +127,11 @@ class _HomePageState extends State<HomePage> {
     return switch (prefix) {
       '@' => const TextStyle(
           color: Colors.white,
-          height: 3,
+          height: 1.6,
           fontWeight: FontWeight.bold),
       '#' => const TextStyle(
           color: Colors.white,
-          height: 3,
+          height: 1.6,
           fontWeight: FontWeight.bold),
       _ => null,
     };
@@ -296,7 +296,7 @@ class _HomePageState extends State<HomePage> {
                     controller: _controller,
                     focusNode: _focusNode,
                     maxLines: 4,
-                    style: const TextStyle(height: 3),
+                    style: const TextStyle(height: 1.8),
                     decoration: InputDecoration(
                       hintText: 'Type @ to tag a user or # to tag a topic',
                       helperText: 'Backend format: $backendFormat',                      

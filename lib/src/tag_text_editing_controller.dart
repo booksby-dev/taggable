@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -83,6 +84,9 @@ class TagTextEditingController<T> extends TextEditingController {
   /// The cursor position before the last change. Used for intuitive cursor movement.
   int _previousCursorPosition = 0;
   int _previousCursorPositionExtent = 0;
+
+  /// The matches that are currently selected.
+  List<T> allMatches = [];
 
   /// The text formatted in backend format. Do not use `controller.text` directly.
   String get textInBackendFormat => text.replaceAll(spaceMarker, '');
@@ -198,11 +202,11 @@ class TagTextEditingController<T> extends TextEditingController {
           style: const TextStyle(letterSpacing: 0),
         ));
 
-        textSpanChildren.add(stylizedTag(tagText.substring(lastSpaceMarker + 1), tag.style, textStyle));
+        textSpanChildren.add(stylizedTag(tagText.substring(lastSpaceMarker + 1), tag, textStyle));
         continue;
       }
 
-      textSpanChildren.add(stylizedTag(tagText, tag.style, textStyle));
+      textSpanChildren.add(stylizedTag(tagText, tag, textStyle));
     }
 
     final textAfterAllTags = text.substring(position, text.length);
@@ -210,16 +214,16 @@ class TagTextEditingController<T> extends TextEditingController {
     return TextSpan(style: style, children: textSpanChildren);
   }
 
-  InlineSpan stylizedTag(String tagText, TagStyle tagStyle, TextStyle? textStyle) {
+  InlineSpan stylizedTag(String tagText, Tag tag, TextStyle? textStyle) {
+    debugPrint('allMatches: $allMatches ${tag.taggable}');
     return WidgetSpan(
           alignment: PlaceholderAlignment.middle,
           child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 2),
-                decoration: BoxDecoration(
-                  color: tagStyle.tagColor,
-                  borderRadius: BorderRadius.circular(4),
+            decoration: BoxDecoration(
+              color: allMatches.contains(tag.taggable) ? tag.style.tagColor : tag.style.highlightTagColor,
+              borderRadius: BorderRadius.circular(4),
             ),
-            padding: tagStyle.tagColor == null ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 6),
+            padding: tag.style.tagColor == null ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 6),
             child: Text(tagText, style: textStyle),
           ),
         );
@@ -291,6 +295,8 @@ class TagTextEditingController<T> extends TextEditingController {
           .where(
               (match) => match.start < extentOffset && match.end > extentOffset)
           .firstOrNull;
+
+      allMatches = _getTagMatches(text).where((match) => match.start >= min(baseOffset, extentOffset) && match.end <= max(baseOffset, extentOffset)).map((match) => _tagBackendFormatsToTaggables[match.group(0)!] as T).toList();
 
       final baseBeforeExtent = baseOffset < extentOffset;
 
