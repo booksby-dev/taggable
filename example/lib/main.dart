@@ -99,7 +99,7 @@ class _HomePageState extends State<HomePage> {
       toFrontendConverter: (taggable) => taggable.name,
       toBackendConverter: (taggable) => taggable.id,
       textStyleBuilder: textStyleBuilder,
-      tagStyles: const [TagStyle(prefix: '@', showPrefix: false), TagStyle(prefix: '#', showPrefix: false, padding: EdgeInsets.only(left: 10, right: 10))],
+      tagStyles: const [TagStyle(prefix: '@', showPrefix: false, tagColor: Colors.blue), TagStyle(prefix: '#', showPrefix: false, tagColor: Colors.green)],
     );
 
     // Add a listener to update the [backendFormat] when the text changes.
@@ -125,20 +125,12 @@ class _HomePageState extends State<HomePage> {
     //   );
     // }
     return switch (prefix) {
-      '@' => TextStyle(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold),
-      '#' => TextStyle(
+      '@' => const TextStyle(
           color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-          background: Paint()
-          ..strokeCap = StrokeCap.round
-          ..strokeWidth = 16.0
-          ..color = Colors.green
-          ..style = PaintingStyle.stroke
-          ..strokeJoin = StrokeJoin.round,          
-          height: 1),
+          fontWeight: FontWeight.bold),
+      '#' => const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold),
       _ => null,
     };
   }

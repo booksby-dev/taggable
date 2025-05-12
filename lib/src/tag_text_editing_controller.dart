@@ -199,8 +199,13 @@ class TagTextEditingController<T> extends TextEditingController {
         ));
 
         textSpanChildren.add(WidgetSpan(
-          child: Padding(
-            padding: tag.style.padding,
+          alignment: PlaceholderAlignment.middle,
+          child: Container(
+            decoration: BoxDecoration(
+              color: tag.style.tagColor,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            padding: tag.style.tagColor == null ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             child: Text(tagText.substring(lastSpaceMarker + 1), style: textStyle),
           ),
         ));
@@ -208,11 +213,16 @@ class TagTextEditingController<T> extends TextEditingController {
       }
 
       textSpanChildren.add(WidgetSpan(
-        child: Padding(
-          padding: tag.style.padding,
-          child: Text(tagText, style: textStyle),
-        ),
-      ));
+          alignment: PlaceholderAlignment.middle,
+          child: Container(
+            decoration: BoxDecoration(
+              color: tag.style.tagColor,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            padding: tag.style.tagColor == null ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            child: Text(tagText, style: textStyle),
+          ),
+        ));
     }
 
     final textAfterAllTags = text.substring(position, text.length);

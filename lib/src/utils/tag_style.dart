@@ -6,7 +6,7 @@ class TagStyle {
     this.prefix = '@',
     this.regExp = r'[a-zA-Z0-9]+',
     this.showPrefix = true,
-    this.padding = EdgeInsets.zero,
+    this.tagColor
   });
 
   /// The prefix that identifies the tag, e.g. '@' in '@tag'. Defaults to '@'.
@@ -33,5 +33,6 @@ class TagStyle {
   /// Whether to show the prefix in the frontend.
   final bool showPrefix;
 
-  final EdgeInsets padding;
+  /// The color of the tag.
+  final Color? tagColor;
 }
