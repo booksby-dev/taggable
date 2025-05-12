@@ -99,7 +99,7 @@ class _HomePageState extends State<HomePage> {
       toFrontendConverter: (taggable) => taggable.name,
       toBackendConverter: (taggable) => taggable.id,
       textStyleBuilder: textStyleBuilder,
-      tagStyles: const [TagStyle(prefix: '@'), TagStyle(prefix: '#')],
+      tagStyles: const [TagStyle(prefix: '@', showPrefix: false), TagStyle(prefix: '#')],
     );
 
     // Add a listener to update the [backendFormat] when the text changes.

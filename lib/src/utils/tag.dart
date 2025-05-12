@@ -27,11 +27,11 @@ class Tag<T> {
     final frontendString = toFrontendConverter(taggable);
     final backendString = toBackendConverter(taggable);
     if (isFrontend) {
-      final lengthDifference = (backendString.length - frontendString.length)
+      final lengthDifference = (backendString.length - (frontendString.length + (style.showPrefix ? 0 : -1)))
           .clamp(0, backendString.length);
-      return '${spaceMarker * lengthDifference}${style.prefix}$frontendString';
+      return '${spaceMarker * lengthDifference}${style.showPrefix ? style.prefix : ''}$frontendString';
     } else {
-      final lengthDifference = (frontendString.length - backendString.length)
+      final lengthDifference = (frontendString.length + (style.showPrefix ? 0 : -1) - backendString.length)
           .clamp(0, frontendString.length);
       return '${style.prefix}${spaceMarker * lengthDifference}$backendString';
     }

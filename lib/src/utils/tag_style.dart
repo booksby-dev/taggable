@@ -3,6 +3,7 @@ class TagStyle {
   const TagStyle({
     this.prefix = '@',
     this.regExp = r'[a-zA-Z0-9]+',
+    this.showPrefix = true,
   });
 
   /// The prefix that identifies the tag, e.g. '@' in '@tag'. Defaults to '@'.
@@ -25,4 +26,7 @@ class TagStyle {
   ///
   /// The regular expression should not contain the prefix.
   final String regExp;
+
+  /// Whether to show the prefix in the frontend.
+  final bool showPrefix;
 }
