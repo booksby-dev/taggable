@@ -236,6 +236,7 @@ class TagTextEditingController<T> extends TextEditingController {
   ///
   /// If a range is selected, any tags included in the range are selected as a whole.
   void _cursorController() {
+    allMatches = [];
     final baseOffset = selection.baseOffset;
     final extentOffset = selection.extentOffset;
     final isCollapsed = selection.isCollapsed;
@@ -306,11 +307,6 @@ class TagTextEditingController<T> extends TextEditingController {
 
       final extentOffsetDifference = extentOffset + 1 - _previousCursorPositionExtent;
       
-      debugPrint('baseBeforeExtent: $baseBeforeExtent $baseOffset $extentOffset');
-      debugPrint('matchWithBase: ${matchWithBase?.group(0)} ${matchWithBase?.start} ${matchWithBase?.end}');
-      debugPrint('matchWithExtent: ${matchWithExtent?.group(0)} ${matchWithExtent?.start} ${matchWithExtent?.end}');
-      debugPrint('extentOffsetDifference: $extentOffsetDifference');
-
       // The selection covers a tag. Select the tag as a whole.
       selection = TextSelection(
         baseOffset: baseBeforeExtent
