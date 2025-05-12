@@ -306,6 +306,11 @@ class TagTextEditingController<T> extends TextEditingController {
       }
 
       final extentOffsetDifference = extentOffset + 1 - _previousCursorPositionExtent;
+
+      debugPrint('extentOffsetDifference: $extentOffsetDifference');
+      debugPrint('matchWithBase: ${matchWithBase?.group(0)} ${matchWithBase?.start} ${matchWithBase?.end}');
+      debugPrint('matchWithExtent: ${matchWithExtent?.group(0)} ${matchWithExtent?.start} ${matchWithExtent?.end}');
+      debugPrint('baseBeforeExtent: $baseBeforeExtent $baseOffset $extentOffset');
       
       // The selection covers a tag. Select the tag as a whole.
       selection = TextSelection(
@@ -313,7 +318,7 @@ class TagTextEditingController<T> extends TextEditingController {
             ? matchWithBase?.start ?? baseOffset
             : matchWithBase?.end ?? baseOffset,
         extentOffset: baseBeforeExtent
-            ? extentOffsetDifference > 1 ? matchWithExtent?.end ?? extentOffset : (matchWithExtent?.start ?? extentOffset) 
+            ? extentOffsetDifference > 1 ? matchWithExtent?.end ?? extentOffset : ((matchWithExtent?.start ?? extentOffset) - 1)
             : extentOffsetDifference > 1 ? matchWithExtent?.end ?? extentOffset : (matchWithExtent?.start ?? (extentOffset - 1)),
       );
     }
