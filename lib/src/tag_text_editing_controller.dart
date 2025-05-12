@@ -215,7 +215,6 @@ class TagTextEditingController<T> extends TextEditingController {
   }
 
   InlineSpan stylizedTag(String tagText, Tag tag, TextStyle? textStyle) {
-    debugPrint('allMatches: $allMatches ${tag.taggable}');
     return WidgetSpan(
           alignment: PlaceholderAlignment.middle,
           child: Container(
@@ -306,6 +305,11 @@ class TagTextEditingController<T> extends TextEditingController {
       }
 
       final extentOffsetDifference = extentOffset + 1 - _previousCursorPositionExtent;
+      
+      debugPrint('baseBeforeExtent: $baseBeforeExtent $baseOffset $extentOffset');
+      debugPrint('matchWithBase: ${matchWithBase?.group(0)} ${matchWithBase?.start} ${matchWithBase?.end}');
+      debugPrint('matchWithExtent: ${matchWithExtent?.group(0)} ${matchWithExtent?.start} ${matchWithExtent?.end}');
+      debugPrint('extentOffsetDifference: $extentOffsetDifference');
 
       // The selection covers a tag. Select the tag as a whole.
       selection = TextSelection(
@@ -314,7 +318,7 @@ class TagTextEditingController<T> extends TextEditingController {
             : matchWithBase?.end ?? baseOffset,
         extentOffset: baseBeforeExtent
             ? extentOffsetDifference > 1 ? matchWithExtent?.end ?? extentOffset : (matchWithExtent?.start ?? extentOffset) 
-            : (matchWithExtent?.start ?? (extentOffset - 1)),
+            : extentOffsetDifference > 1 ? matchWithExtent?.end ?? extentOffset : (matchWithExtent?.start ?? (extentOffset - 1)),
       );
     }
   }
