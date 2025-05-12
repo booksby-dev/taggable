@@ -213,20 +213,16 @@ class TagTextEditingController<T> extends TextEditingController {
   InlineSpan stylizedTag(String tagText, TagStyle tagStyle, TextStyle? textStyle) {
     return WidgetSpan(
           alignment: PlaceholderAlignment.middle,
-          child: IntrinsicHeight(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Spacer(),
-              Container(
+          child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 2),
                 decoration: BoxDecoration(
                   color: tagStyle.tagColor,
                   borderRadius: BorderRadius.circular(4),
             ),
             padding: tagStyle.tagColor == null ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 6),
             child: Text(tagText, style: textStyle),
-          ), const Spacer()]),
-        ));
+          ),
+        );
   }
 
   /// A listener that ensures that the cursor is always outside of a tag.
