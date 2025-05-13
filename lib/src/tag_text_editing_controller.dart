@@ -366,6 +366,7 @@ class TagTextEditingController<T> extends TextEditingController {
   void _checkTagRecognizabilityController() {
     // First, check for tags that are still detected but not valid
     for (final match in _getTagMatches(text)) {
+      debugPrint('match: ${match.group(0)}');
       // If the match can be parsed as a tag, it is valid
       if (_parseTagString(match.group(0)!) != null) continue;
 
@@ -383,20 +384,25 @@ class TagTextEditingController<T> extends TextEditingController {
             .any((key) => key.substring(0, key.length - 1) == match.group(0));
         // If the final character is missing, remove the tag.
         // Otherwise, the user is probably still typing the tag.
+
         if (missesFinalCharacter) {
+          final start = text.substring(0, selection.baseOffset).lastIndexOf(match.group(0)!);
+          final end = start + match.group(0)!.length;
+
           value = TextEditingValue(
-            text: text.replaceFirst(match.group(0)!, ''),
-            selection: TextSelection.collapsed(offset: match.start),
+            text: text.replaceRange(start, end, ''),
+            selection: TextSelection.collapsed(offset: start),
           );
         }
         continue;
       }
+
       final taggable = _tagBackendFormatsToTaggables[originalTag] as T;
       final tagStyle = tagStyles
           .where((style) => originalTag.startsWith(style.prefix))
           .first;
       final tagFrontendFormat = toFrontendConverter(taggable);
-      final replacement = tagStyle.prefix + tagFrontendFormat;
+      final replacement = tagStyle.prefix + spaceMarker + tagFrontendFormat;
 
       // Break the tag by replacing the tagValue with the tagFrontendFormat
       // This ensures the user sees the same text as before, without the tag
