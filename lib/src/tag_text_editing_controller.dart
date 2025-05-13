@@ -346,11 +346,6 @@ class TagTextEditingController<T> extends TextEditingController {
       return null;
     }
     final query = text.substring(tagStartPosition, currentPos);
-
-    print('currentPos: $currentPos');
-    print('text: $text');
-    print('text.substring(0, currentPos): ${text.substring(0, currentPos)}');
-    print('query: $query');
     
     final tagStyle =
         tagStyles.where((style) => query.startsWith(style.prefix)).first;
@@ -385,7 +380,7 @@ class TagTextEditingController<T> extends TextEditingController {
         // If the final character is missing, remove the tag.
         // Otherwise, the user is probably still typing the tag.
 
-        if (missesFinalCharacter) {
+        if (missesFinalCharacter && _previousCursorPosition > match.end) {
           final start = text.substring(0, selection.baseOffset).lastIndexOf(match.group(0)!);
           final end = start + match.group(0)!.length;
 
@@ -396,40 +391,40 @@ class TagTextEditingController<T> extends TextEditingController {
         }
         continue;
       }
-    }
-    //   final taggable = _tagBackendFormatsToTaggables[originalTag] as T;
-    //   final tagStyle = tagStyles
-    //       .where((style) => originalTag.startsWith(style.prefix))
-    //       .first;
-    //   final tagFrontendFormat = toFrontendConverter(taggable);
-    //   final replacement = tagStyle.prefix + spaceMarker + tagFrontendFormat;
 
-    //   // Break the tag by replacing the tagValue with the tagFrontendFormat
-    //   // This ensures the user sees the same text as before, without the tag
-    //   value = TextEditingValue(
-    //     text: text.replaceFirst(originalTag, replacement, match.start),
-    //     selection: TextSelection.collapsed(
-    //       offset:
-    //           selection.baseOffset - originalTag.length + replacement.length,
-    //     ),
-    //   );
-    // }
-    // // Next, check for tags that have been broken by trimming at the start
-    // // For these tags, the prefix is missing its first character
-    // final brokenTags = _tagBackendFormatsToTaggables.keys.expand((key) {
-    //   // Create a regexp that matches occurences of 'key' without the first
-    //   // character. e.g. if 'key' is '@tag', the regexp should match 'tag'
-    //   // but not '@tag'.
-    //   final pattern = '(?<!${key.substring(0, 1)})${key.substring(1)}';
-    //   return RegExp(pattern).allMatches(text);
-    // });
-    // for (final brokenTag in brokenTags) {
-    //   // Remove the entire tag. The selection can remain the same.
-    //   value = TextEditingValue(
-    //     text: text.replaceRange(brokenTag.start, brokenTag.end, ''),
-    //     selection: TextSelection.collapsed(offset: brokenTag.start),
-    //   );
-    // }
+      final taggable = _tagBackendFormatsToTaggables[originalTag] as T;
+      final tagStyle = tagStyles
+          .where((style) => originalTag.startsWith(style.prefix))
+          .first;
+      final tagFrontendFormat = toFrontendConverter(taggable);
+      final replacement = tagStyle.prefix + tagFrontendFormat;
+
+      // Break the tag by replacing the tagValue with the tagFrontendFormat
+      // This ensures the user sees the same text as before, without the tag
+      value = TextEditingValue(
+        text: text.replaceFirst(originalTag, replacement, match.start),
+        selection: TextSelection.collapsed(
+          offset:
+              selection.baseOffset - originalTag.length + replacement.length,
+        ),
+      );
+    }
+    // Next, check for tags that have been broken by trimming at the start
+    // For these tags, the prefix is missing its first character
+    final brokenTags = _tagBackendFormatsToTaggables.keys.expand((key) {
+      // Create a regexp that matches occurences of 'key' without the first
+      // character. e.g. if 'key' is '@tag', the regexp should match 'tag'
+      // but not '@tag'.
+      final pattern = '(?<!${key.substring(0, 1)})${key.substring(1)}';
+      return RegExp(pattern).allMatches(text);
+    });
+    for (final brokenTag in brokenTags) {
+      // Remove the entire tag. The selection can remain the same.
+      value = TextEditingValue(
+        text: text.replaceRange(brokenTag.start, brokenTag.end, ''),
+        selection: TextSelection.collapsed(offset: brokenTag.start),
+      );
+    }
   }
 
   /// A listener that searches for taggables based on the current tag prompt.
