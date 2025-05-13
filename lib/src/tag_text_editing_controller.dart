@@ -337,6 +337,7 @@ class TagTextEditingController<T> extends TextEditingController {
     }
     final int currentPos = selection.baseOffset;
     if (currentPos == -1) return null;
+    
     // Get the last position of a tag prefix before the cursor
     int tagStartPosition = text.substring(0, currentPos).lastIndexOf(
           RegExp(tagStyles.map((style) => style.prefix).join('|')),
@@ -345,6 +346,12 @@ class TagTextEditingController<T> extends TextEditingController {
       return null;
     }
     final query = text.substring(tagStartPosition, currentPos);
+
+    print('currentPos: $currentPos');
+    print('text: $text');
+    print('text.substring(0, currentPos): ${text.substring(0, currentPos)}');
+    print('query: $query');
+    
     final tagStyle =
         tagStyles.where((style) => query.startsWith(style.prefix)).first;
     return (tagStyle.prefix, query.substring(tagStyle.prefix.length));
