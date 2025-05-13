@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 /// A class that represents a distinct way of styling tags.
-class TagStyle {
+class TagStyle<T> {
   const TagStyle({
     this.prefix = '@',
     this.regExp = r'[a-zA-Z0-9]+',
     this.showPrefix = true,
     this.tagColor,
     this.highlightTagColor,
+    this.onTapped
   });
 
   /// The prefix that identifies the tag, e.g. '@' in '@tag'. Defaults to '@'.
@@ -39,4 +40,7 @@ class TagStyle {
 
   /// The color of the tag when it is highlighted.
   final Color? highlightTagColor;
+
+  /// The callback that is called when the tag is tapped.
+  final void Function(T taggable)? onTapped;
 }

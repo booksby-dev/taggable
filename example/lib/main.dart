@@ -99,7 +99,7 @@ class _HomePageState extends State<HomePage> {
       toFrontendConverter: (taggable) => taggable.name,
       toBackendConverter: (taggable) => taggable.id,
       textStyleBuilder: textStyleBuilder,
-      tagStyles: const [TagStyle(prefix: '@', showPrefix: false, tagColor: Colors.blue, highlightTagColor: Colors.red), TagStyle(prefix: '#', showPrefix: false, tagColor: Colors.green, highlightTagColor: Colors.red)],
+      tagStyles: [TagStyle(prefix: '@', showPrefix: false, tagColor: Colors.blue, highlightTagColor: Colors.red, onTapped: (taggable) => debugPrint('Tapped ${taggable.name}')), const TagStyle(prefix: '#', showPrefix: false, tagColor: Colors.green, highlightTagColor: Colors.red)],
     );
 
     // Add a listener to update the [backendFormat] when the text changes.
