@@ -146,7 +146,7 @@ class TagTextEditingController<T> extends TextEditingController {
         backendText.substring(position, backendText.length);
     tmpText.write(textAfterAllTags);
 
-    text = tmpText.toString().trimRight();
+    text = tmpText.toString(); //.trimRight();
   }
 
   /// Parses a tag string (e.g. "@tag") and returns a tag object.
