@@ -442,14 +442,14 @@ class TagTextEditingController<T> extends TextEditingController {
   ///
   /// Insertion typically replaces any tag prompt with the taggable. The number
   /// of characters to replace is given by [charactersToReplace].
-  void insertTaggable(String prefix, T taggable, int charactersToReplace) {
+  void insertTaggable(String prefix, T taggable, int charactersToReplace, {bool addSpace = false}) {
     final tagStyle = tagStyles.where((style) => prefix == style.prefix).first;
     final tag = Tag<T>(taggable: taggable, style: tagStyle);
     final tagText = tag.toModifiedString(
       toFrontendConverter,
       toBackendConverter,
       isFrontend: false,
-    );
+    ) + (addSpace ? " " : '');
 
     _tagBackendFormatsToTaggables[tagText] = taggable;
 
