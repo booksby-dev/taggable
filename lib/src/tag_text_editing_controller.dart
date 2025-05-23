@@ -456,6 +456,12 @@ class TagTextEditingController<T> extends TextEditingController {
     final end = selection.baseOffset;
     final start = end - charactersToReplace;
 
+    debugPrint('insertTaggable:');
+    debugPrint('start: $start');
+    debugPrint('end: $end');
+    debugPrint('offset: ${start + tagText.length}');
+    debugPrint('tagText: $tagText');
+
     value = TextEditingValue(
       text: text.replaceRange(start, end, tagText),
       selection: TextSelection.collapsed(offset: start + tagText.length),
