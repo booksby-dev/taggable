@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class TagStyle<T> {
   const TagStyle({
     this.prefix = '@',
-    this.regExp = r'[a-zA-Z0-9]+',
+    this.regExp = r'[a-zA-Z0-9_]+',
     this.showPrefix = true,
     this.tagColor,
     this.highlightTagColor,

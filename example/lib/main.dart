@@ -24,7 +24,7 @@ class Topic extends Taggable {
 
 /// A list of users to search from.
 const users = <User>[
-  User(id: 'aliceUniqueId', name: 'Alice'),
+  User(id: 'alice_unique_id', name: 'Alice'),
   User(id: 'otherAliceUniqueId', name: 'Alice', icon: Icons.person_outline),
   User(id: 'bobUniqueId', name: 'Bob'),
   User(id: 'charLieUniqueId', name: 'Charlie'),
@@ -319,7 +319,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   // This is an example of setting the initial text.
                   _controller.setText(
-                    "Hello @aliceUniqueId and welcome to #myFlutterId",
+                    "Hello @alice_unique_id and welcome to #myFlutterId",
                     backendToTaggable,
                   );
                 },
