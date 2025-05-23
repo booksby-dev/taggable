@@ -456,11 +456,11 @@ class TagTextEditingController<T> extends TextEditingController {
     final end = selection.baseOffset;
     final start = end - charactersToReplace;
 
-    debugPrint('insertTaggable:');
-    debugPrint('start: $start');
-    debugPrint('end: $end');
-    debugPrint('offset: ${start + tagText.length}');
-    debugPrint('tagText: $tagText');
+    print('insertTaggable:');
+    print('start: $start');
+    print('end: $end');
+    print('offset: ${start + tagText.length}');
+    print('tagText: $tagText');
 
     value = TextEditingValue(
       text: text.replaceRange(start, end, tagText),
