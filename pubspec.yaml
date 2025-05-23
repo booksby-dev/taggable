@@ -1,6 +1,6 @@
 name: flutter_taggable
 description: Mention users, insert hashtags, and tag other things with a lightweight and customizable extension to the TextEditingController, and store tags in a database-friendly format.
-version: 1.1.24
+version: 1.1.25
 homepage: https://github.com/WesselvanDam/taggable
 repository: https://github.com/WesselvanDam/taggable
 issue_tracker: https://github.com/WesselvanDam/taggable/issues
@@ -20,6 +20,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.0
 
-screenshots:
+screenshots
   - description: Example of a taggable text field.
     path: doc/flutter_taggable_example_screenshot.png

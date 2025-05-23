@@ -110,7 +110,7 @@ class TagTextEditingController<T> extends TextEditingController {
         backendToTaggable,
   ) async {
 
-    final cursorBaseOffset = selection.baseOffset;
+    final prevSelection = selection;
 
     final StringBuffer tmpText = StringBuffer();
     int position = 0;
@@ -143,8 +143,6 @@ class TagTextEditingController<T> extends TextEditingController {
       _tagBackendFormatsToTaggables[tagText] = taggable;
 
       tmpText.write(tagText);
-
-      selection = TextSelection.collapsed(offset: cursorBaseOffset + tagText.length);
     }
 
     final textAfterAllTags =
@@ -152,6 +150,8 @@ class TagTextEditingController<T> extends TextEditingController {
     tmpText.write(textAfterAllTags);
 
     text = tmpText.toString(); //.trimRight();
+    
+    selection = prevSelection;
   }
 
   /// Parses a tag string (e.g. "@tag") and returns a tag object.

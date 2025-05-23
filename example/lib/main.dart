@@ -322,6 +322,7 @@ class _HomePageState extends State<HomePage> {
                     "Hello @alice_unique_id and welcome to #myFlutterId",
                     backendToTaggable,
                   );
+                  _focusNode.requestFocus();
                 },
                 child: const Text('Set initial text'),
               ),
