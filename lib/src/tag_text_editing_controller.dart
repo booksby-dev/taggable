@@ -109,6 +109,9 @@ class TagTextEditingController<T> extends TextEditingController {
     FutureOr<T?> Function(String prefix, String backendString)
         backendToTaggable,
   ) async {
+
+    final cursorBaseOffset = selection.baseOffset;
+
     final StringBuffer tmpText = StringBuffer();
     int position = 0;
 
@@ -140,6 +143,8 @@ class TagTextEditingController<T> extends TextEditingController {
       _tagBackendFormatsToTaggables[tagText] = taggable;
 
       tmpText.write(tagText);
+
+      selection = TextSelection.collapsed(offset: cursorBaseOffset + tagText.length);
     }
 
     final textAfterAllTags =
@@ -456,12 +461,6 @@ class TagTextEditingController<T> extends TextEditingController {
     final end = selection.baseOffset;
     final start = end - charactersToReplace;
 
-    print('insertTaggable:');
-    print('start: $start');
-    print('end: $end');
-    print('offset: ${start + tagText.length}');
-    print('tagText: $tagText');
-
     value = TextEditingValue(
       text: text.replaceRange(start, end, tagText),
       selection: TextSelection.collapsed(offset: start + tagText.length),
@@ -470,9 +469,6 @@ class TagTextEditingController<T> extends TextEditingController {
 
   /// Updates the previous cursor position. This is used for intuitive cursor movement.
   void _updatePreviousCursorPosition() {
-    print('updatePreviousCursorPosition:');
-    print('baseOffset: ${selection.baseOffset}');
-    print('extentOffset: ${selection.extentOffset}');
     _previousCursorPosition = selection.baseOffset;
     _previousCursorPositionExtent = selection.extentOffset;
   }
