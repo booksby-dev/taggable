@@ -52,7 +52,7 @@ class TagTextEditingController<T> extends TextEditingController {
     if (query != null) {
       _availableTaggablesController(query.$1, query.$2);
     }
-    _updatePreviousCursorPosition();
+    //_updatePreviousCursorPosition();
   }
 
   /// Searches for taggables based on the tag prefix (e.g. '@') and query (e.g. 'Ali').
