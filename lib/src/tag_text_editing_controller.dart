@@ -52,7 +52,7 @@ class TagTextEditingController<T> extends TextEditingController {
     if (query != null) {
       _availableTaggablesController(query.$1, query.$2);
     }
-    //_updatePreviousCursorPosition();
+    _updatePreviousCursorPosition();
   }
 
   /// Searches for taggables based on the tag prefix (e.g. '@') and query (e.g. 'Ali').
@@ -470,6 +470,9 @@ class TagTextEditingController<T> extends TextEditingController {
 
   /// Updates the previous cursor position. This is used for intuitive cursor movement.
   void _updatePreviousCursorPosition() {
+    print('updatePreviousCursorPosition:');
+    print('baseOffset: ${selection.baseOffset}');
+    print('extentOffset: ${selection.extentOffset}');
     _previousCursorPosition = selection.baseOffset;
     _previousCursorPositionExtent = selection.extentOffset;
   }
