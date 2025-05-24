@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'constants/constants.dart';
 import 'utils/tag_style.dart';
@@ -30,10 +31,12 @@ class TagTextEditingController<T> extends TextEditingController {
     this.tagStyles = const [TagStyle()],
   }) : super() {
     addListener(taggingListeners);
+    ServicesBinding.instance.keyboard.addHandler(_onKey);
   }
 
   @override
   void dispose() {
+    ServicesBinding.instance.keyboard.removeHandler(_onKey);
     removeListener(taggingListeners);
     super.dispose();
   }
@@ -46,6 +49,10 @@ class TagTextEditingController<T> extends TextEditingController {
 
   /// A listener that triggers all tagging-related listeners.
   void taggingListeners() {
+    if (didPressDeleteKey) {
+      didPressDeleteKey = false;
+      _checkTagRecognizabilityController();
+    }
     //_checkTagRecognizabilityController();
     _cursorController();
     final query = _checkTagQueryController();
@@ -98,6 +105,20 @@ class TagTextEditingController<T> extends TextEditingController {
             '${RegExp.escape(style.prefix)}$spaceMarker*(${style.regExp})')
         .join('|');
     return RegExp(pattern).allMatches(text);
+  }
+
+  bool didPressDeleteKey = false;
+
+  bool _onKey(KeyEvent event) {
+    final key = event.logicalKey.keyId;
+    
+    // delete key
+    if (event is KeyDownEvent) {
+      if (key == 4294967304) {
+        didPressDeleteKey = true;
+      }
+    }
+    return false;
   }
 
   /// Sets the initial text of the text field, converting backend strings to taggables.
@@ -368,6 +389,7 @@ class TagTextEditingController<T> extends TextEditingController {
   /// character to the end of a tag that results in the regular expression not
   /// matching the tag anymore.
   void _checkTagRecognizabilityController() {
+    debugPrint('checkTagRecognizabilityController');
     // First, check for tags that are still detected but not valid
     for (final match in _getTagMatches(text)) {
       debugPrint('match: ${match.group(0)}');
@@ -380,6 +402,8 @@ class TagTextEditingController<T> extends TextEditingController {
           .where((key) => match.group(0)!.contains(key))
           .firstOrNull;
 
+      debugPrint('originalTag: $originalTag');
+
       if (originalTag == null) {
         // The tag is not a superstring of a valid tag, nor is it a valid tag
         // It is still detected by the regular expression, so it must have been
@@ -389,7 +413,11 @@ class TagTextEditingController<T> extends TextEditingController {
         // If the final character is missing, remove the tag.
         // Otherwise, the user is probably still typing the tag.
 
-        if (missesFinalCharacter && _previousCursorPosition > match.end) {
+        debugPrint('missesFinalCharacter: $missesFinalCharacter');
+        debugPrint('previousCursorPosition: $_previousCursorPosition');
+        debugPrint('match.end: ${match.end}');
+
+        if (missesFinalCharacter && _previousCursorPosition >= match.end) {
           final start = text.substring(0, selection.baseOffset).lastIndexOf(match.group(0)!);
           final end = start + match.group(0)!.length;
 
