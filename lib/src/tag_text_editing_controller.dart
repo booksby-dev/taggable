@@ -172,7 +172,10 @@ class TagTextEditingController<T> extends TextEditingController {
 
     text = tmpText.toString(); //.trimRight();
     
-    selection = prevSelection;
+    // check if valid selection first
+    if (prevSelection.baseOffset >= 0 && prevSelection.baseOffset < text.length) {
+      selection = TextSelection.collapsed(offset: text.length);
+    }
   }
 
   /// Parses a tag string (e.g. "@tag") and returns a tag object.
