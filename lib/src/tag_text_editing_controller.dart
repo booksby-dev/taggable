@@ -174,7 +174,7 @@ class TagTextEditingController<T> extends TextEditingController {
     
     // check if valid selection first
     if (prevSelection.baseOffset >= 0 && prevSelection.baseOffset < text.length) {
-      selection = TextSelection.collapsed(offset: text.length);
+      selection = prevSelection;
     }
   }
 
