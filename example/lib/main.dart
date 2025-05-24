@@ -24,8 +24,8 @@ class Topic extends Taggable {
 
 /// A list of users to search from.
 const users = <User>[
-  User(id: 'alice_unique_id', name: 'Alice'),
-  User(id: 'otherAliceUniqueId', name: 'Alice', icon: Icons.person_outline),
+  User(id: 'alice_unique_id', name: 'Alice Unique'),
+  User(id: 'alice', name: 'Alice', icon: Icons.person_outline),
   User(id: 'bobUniqueId', name: 'Bob'),
   User(id: 'charLieUniqueId', name: 'Charlie'),
   User(id: 'carolUniqueId', name: 'Carol'),

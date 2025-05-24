@@ -46,7 +46,7 @@ class TagTextEditingController<T> extends TextEditingController {
 
   /// A listener that triggers all tagging-related listeners.
   void taggingListeners() {
-    _checkTagRecognizabilityController();
+    //_checkTagRecognizabilityController();
     _cursorController();
     final query = _checkTagQueryController();
     if (query != null) {
@@ -351,7 +351,11 @@ class TagTextEditingController<T> extends TextEditingController {
       return null;
     }
     final query = text.substring(tagStartPosition, currentPos);
-    
+
+    if (query.contains(' ')) {
+      return null;
+    }
+
     final tagStyle =
         tagStyles.where((style) => query.startsWith(style.prefix)).first;
     return (tagStyle.prefix, query.substring(tagStyle.prefix.length));
