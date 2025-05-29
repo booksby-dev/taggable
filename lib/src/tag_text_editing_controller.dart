@@ -473,6 +473,22 @@ class TagTextEditingController<T> extends TextEditingController {
   void _checkTagRecognizabilityController() {
     debugPrint('checkTagRecognizabilityController');
     // First, check for tags that are still detected but not valid
+
+    int lastTagIndex = -1000;
+    String? lastTag;
+
+    for (var tagStyle in tagStyles) {
+      final index = text.substring(0, selection.baseOffset).lastIndexOf(tagStyle.prefix);
+      if (index != -1 && index > lastTagIndex) {
+        lastTagIndex = index;
+        lastTag = text.substring(lastTagIndex, selection.baseOffset);
+      }
+    }
+
+    if (lastTag == null) {
+      return;
+    }
+
     for (final match in _getTagMatches(text)) {
       debugPrint('match: ${match.group(0)}');
       // If the match can be parsed as a tag, it is valid
@@ -490,22 +506,20 @@ class TagTextEditingController<T> extends TextEditingController {
         // The tag is not a superstring of a valid tag, nor is it a valid tag
         // It is still detected by the regular expression, so it must have been
         // trimmed at the end. Check if it is a valid tag without the last char
-        final missesFinalCharacter = _tagBackendFormatsToTaggables.keys
-            .any((key) => key.substring(0, key.length - 1) == match.group(0));
+        final missesFinalCharacter = match.group(0)!.startsWith(lastTag!);
         // If the final character is missing, remove the tag.
         // Otherwise, the user is probably still typing the tag.
 
         debugPrint('missesFinalCharacter: $missesFinalCharacter');
         debugPrint('previousCursorPosition: $_previousCursorPosition');
         debugPrint('match.end: ${match.end}');
+        debugPrint('lastTag: $lastTag');
+        debugPrint('lastTagIndex: $lastTagIndex');
 
         if (missesFinalCharacter) {
-          final start = text.substring(0, selection.baseOffset).lastIndexOf(match.group(0)!);
-          final end = start + match.group(0)!.length;
-
           value = TextEditingValue(
-            text: text.replaceRange(start, end, ''),
-            selection: TextSelection.collapsed(offset: start),
+            text: text.replaceRange(lastTagIndex, lastTagIndex + lastTag.length, ''),
+            selection: TextSelection.collapsed(offset: lastTagIndex),
           );
         }
         continue;
