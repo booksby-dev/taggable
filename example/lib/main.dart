@@ -24,10 +24,12 @@ class Topic extends Taggable {
 
 /// A list of users to search from.
 const users = <User>[
-  User(id: 'alice_unique_id', name: 'Alice Unique'),
+  User(id: 'ja', name: 'Jason'),
+  User(id: 'eva_rostova', name: 'Commander Eva Rostova'),
+  User(id: 'spacecraft_interior', name: 'Spacecraft Interior'),
   User(id: 'alice', name: 'Alice', icon: Icons.person_outline),
   User(id: 'bobUniqueId', name: 'Bob'),
-  User(id: 'charLieUniqueId', name: 'Charlie'),
+  User(id: 'charlie', name: 'Charlie'),
   User(id: 'carolUniqueId', name: 'Carol'),
   User(id: 'hawkingUniqueId', name: 'Stephen Hawking'),
 ];
@@ -319,7 +321,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   // This is an example of setting the initial text.
                   _controller.setText(
-                    "Hello @alice_unique_id and welcome to #myFlutterId",
+                    "A bright image appears due to Europa's reflected light. @ja and @eva_rostova are in the @spacecraft_interior. They look at the picture.",
                     backendToTaggable,
                   );
                   _focusNode.requestFocus();

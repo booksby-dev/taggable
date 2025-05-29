@@ -59,7 +59,6 @@ class TagTextEditingController<T> extends TextEditingController {
     if (query != null) {
       _availableTaggablesController(query.$1, query.$2);
     }
-    _updatePreviousCursorPosition();
   }
 
   /// Searches for taggables based on the tag prefix (e.g. '@') and query (e.g. 'Ali').
@@ -89,11 +88,12 @@ class TagTextEditingController<T> extends TextEditingController {
   Map<String, T> _tagBackendFormatsToTaggables = {};
 
   /// The cursor position before the last change. Used for intuitive cursor movement.
-  int _previousCursorPosition = 0;
+  int _previousCursorPosition = -1;
   int _previousCursorPositionExtent = 0;
 
   /// The matches that are currently selected.
   List<T> allMatches = [];
+  bool _shouldIgnoreCursorChange = false;
 
   /// The text formatted in backend format. Do not use `controller.text` directly.
   String get textInBackendFormat => text.replaceAll(spaceMarker, '');
@@ -260,6 +260,11 @@ class TagTextEditingController<T> extends TextEditingController {
     );
   }
 
+  void setPreviousCursorPosition() {
+    _previousCursorPosition = selection.baseOffset;
+    _previousCursorPositionExtent = selection.extentOffset;
+  }
+
   /// A listener that ensures that the cursor is always outside of a tag.
   ///
   /// If the cursor is inside a tag, it is moved to the nearest side, unless the
@@ -268,40 +273,66 @@ class TagTextEditingController<T> extends TextEditingController {
   ///
   /// If a range is selected, any tags included in the range are selected as a whole.
   void _cursorController() {
-    allMatches = [];
+    if (_shouldIgnoreCursorChange) {
+      _shouldIgnoreCursorChange = false;
+
+
+      setPreviousCursorPosition();
+      return;
+    }
+    
     final baseOffset = selection.baseOffset;
     final extentOffset = selection.extentOffset;
     final isCollapsed = selection.isCollapsed;
     if (baseOffset == -1) return;
 
-    if (isCollapsed) {
-      // Check if the cursor is inside a tag
-      final matchWithCursor = _getTagMatches(text)
-          .where((match) => match.start <= baseOffset && match.end > baseOffset)
+    final spaceMarkerCount = text.substring(0, baseOffset).split(spaceMarker).length - 1;
+    final adjustedOffset = baseOffset + spaceMarkerCount;
+    final tagMatches = _getTagMatches(text);
+
+    if (isCollapsed) {      
+      debugPrint('cursorController: $baseOffset $adjustedOffset $isCollapsed');
+
+      final matchWithCursor = tagMatches
+          .where((match) => match.start < adjustedOffset && match.end > adjustedOffset)
           .firstOrNull;
+      
+      debugPrint("matchWithCursor: ${matchWithCursor?.group(0)} ${matchWithCursor?.start} ${matchWithCursor?.end}");
 
       if (matchWithCursor == null) {
         // The cursor is not inside a tag.
+        setPreviousCursorPosition();
         return;
       }
 
+      final matchText = matchWithCursor.group(0)!;
+      final matchSpaceMarkerCount = text.substring(0, matchWithCursor.end).split(spaceMarker).length - 1;
+
+      debugPrint('diff: ${baseOffset - _previousCursorPosition}');
+
+      final spaceBeforeTagCount = text.substring(0, matchWithCursor.start).split(spaceMarker).length - 1;
+
       // The cursor is inside a tag.
-      if ((baseOffset + 1 - _previousCursorPosition).abs() == 1) {
+      if ((baseOffset - _previousCursorPosition).abs() == 1) {
         // The user probably moved into the tag with the arrow keys.
         // Move the cursor to the other side.
         // This is not flawless, as the user could have moved into the tag
         // by some other means, but this is the most common case.
 
+        debugPrint("IN HERE");
+
+        _shouldIgnoreCursorChange = true;
         selection = TextSelection.collapsed(
-          offset: (baseOffset + 1 - _previousCursorPosition) == 1
-              ? matchWithCursor.end
-              : matchWithCursor.start,
+          offset: (baseOffset - _previousCursorPosition) == 1
+              ? matchWithCursor.end - matchSpaceMarkerCount
+              : matchWithCursor.start - spaceBeforeTagCount
         );
+        setPreviousCursorPosition();
         return;
       }
       // The user probably clicked into the tag.
       //Move it to the nearest side.
-      final matchText = matchWithCursor.group(0)!;
+
       final taggable = _tagBackendFormatsToTaggables[matchText];
       if (taggable == null) {
         // The tag is not recognisable. This case will be handled by the
@@ -309,26 +340,40 @@ class TagTextEditingController<T> extends TextEditingController {
         return;
       }
 
-      final lengthDifference =
-          (matchText.length - 1); //toFrontendConverter(taggable).length)
-              //.clamp(0, matchText.length);
+      debugPrint("ZZZ ${matchWithCursor.end} ${matchSpaceMarkerCount} ${matchWithCursor.start}");
+
+      final areInsideTag = (baseOffset > matchWithCursor.start - matchSpaceMarkerCount) && (baseOffset < matchWithCursor.end - matchSpaceMarkerCount - 1);
+
+      debugPrint('areInsideTag: $areInsideTag ||| $baseOffset ${matchWithCursor.end - matchSpaceMarkerCount - 1} ${matchWithCursor.start} --- ${matchSpaceMarkerCount}');
+
+      _shouldIgnoreCursorChange = true;
       selection = TextSelection.collapsed(
-        offset: baseOffset - lengthDifference - matchWithCursor.start <
-                matchWithCursor.end - baseOffset
-            ? matchWithCursor.start
-            : matchWithCursor.end,
+        offset: areInsideTag
+            ? matchWithCursor.end - matchSpaceMarkerCount
+            : matchWithCursor.start - spaceBeforeTagCount,
       );
+      setPreviousCursorPosition();
     } else {
+      final adjustedExtentOffset = extentOffset + spaceMarkerCount;
+
       // Check if the selection covers a tag
-      final matchWithBase = _getTagMatches(text)
-          .where((match) => match.start < baseOffset && match.end > baseOffset)
+      final matchWithBase = tagMatches
+          .where((match) => match.start < adjustedOffset - 1 && match.end >= adjustedOffset + 1)
           .firstOrNull;
-      final matchWithExtent = _getTagMatches(text)
+      final matchWithExtent = tagMatches
           .where(
-              (match) => match.start < extentOffset && match.end > extentOffset)
+              (match) => match.start < adjustedExtentOffset - 1 && match.end >= adjustedExtentOffset + 1)
           .firstOrNull;
 
-      allMatches = _getTagMatches(text).where((match) => match.start >= min(baseOffset, extentOffset) && match.end <= max(baseOffset, extentOffset)).map((match) => _tagBackendFormatsToTaggables[match.group(0)!] as T).toList();
+      debugPrint("ALL MATCHES AND START/END: ${tagMatches.map((match) => "${match.group(0)} ${match.start} ${match.end}").toList()}");
+
+      debugPrint("EXTENT OFFSET: $adjustedOffset $adjustedExtentOffset ${matchWithBase?.group(0)} ${matchWithExtent?.group(0)}");   
+
+      allMatches = tagMatches
+        .where((match) => match.start <= max(adjustedOffset, adjustedExtentOffset) && match.end >= min(adjustedOffset, adjustedExtentOffset) + 1)
+        .map((match) => _tagBackendFormatsToTaggables[match.group(0)!] as T).toList();
+
+      debugPrint("ALL MATCHES: ${allMatches.map((t) => toFrontendConverter(t)).toList()}");
 
       final baseBeforeExtent = baseOffset < extentOffset;
 
@@ -337,22 +382,26 @@ class TagTextEditingController<T> extends TextEditingController {
         return;
       }
 
-      final extentOffsetDifference = extentOffset + 1 - _previousCursorPositionExtent;
+      final extentOffsetDifference = extentOffset - _previousCursorPositionExtent;
 
       debugPrint('extentOffsetDifference: $extentOffsetDifference');
       debugPrint('matchWithBase: ${matchWithBase?.group(0)} ${matchWithBase?.start} ${matchWithBase?.end}');
       debugPrint('matchWithExtent: ${matchWithExtent?.group(0)} ${matchWithExtent?.start} ${matchWithExtent?.end}');
       debugPrint('baseBeforeExtent: $baseBeforeExtent $baseOffset $extentOffset');
       
+      final spaceBeforeTagCount = text.substring(0, matchWithBase?.start ?? baseOffset).split(spaceMarker).length - 1;
+
+     _shouldIgnoreCursorChange = true;
       // The selection covers a tag. Select the tag as a whole.
       selection = TextSelection(
         baseOffset: baseBeforeExtent
-            ? matchWithBase?.start ?? baseOffset
-            : matchWithBase?.end ?? baseOffset,
+            ? (matchWithBase?.end ?? adjustedOffset) - spaceMarkerCount
+            : (matchWithBase?.start ?? adjustedOffset) - spaceBeforeTagCount,
         extentOffset: baseBeforeExtent
             ? extentOffsetDifference > 1 ? matchWithExtent?.end ?? extentOffset : ((matchWithExtent?.start ?? extentOffset) - 1)
             : extentOffsetDifference > 1 ? matchWithExtent?.end ?? extentOffset : (matchWithExtent?.start ?? (extentOffset - 1)),
       );
+      setPreviousCursorPosition();
     }
   }
 
@@ -500,11 +549,5 @@ class TagTextEditingController<T> extends TextEditingController {
       text: text.replaceRange(start, end, tagText),
       selection: TextSelection.collapsed(offset: start + tagText.length),
     );
-  }
-
-  /// Updates the previous cursor position. This is used for intuitive cursor movement.
-  void _updatePreviousCursorPosition() {
-    _previousCursorPosition = selection.baseOffset;
-    _previousCursorPositionExtent = selection.extentOffset;
   }
 }
