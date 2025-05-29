@@ -286,13 +286,18 @@ class TagTextEditingController<T> extends TextEditingController {
     final isCollapsed = selection.isCollapsed;
     if (baseOffset == -1) return;
 
-    final spaceMarkerCount = text.substring(0, baseOffset).split(spaceMarker).length - 1;
-    final adjustedOffset = baseOffset + spaceMarkerCount;
+    final spaceMarkerBaseCount = text.substring(0, baseOffset).split(spaceMarker).length - 1;
+    final spaceMarkerExtentCount = text.substring(0, extentOffset).split(spaceMarker).length - 1;
+    final adjustedOffset = baseOffset + spaceMarkerBaseCount;
+    final adjustedExtentOffset = extentOffset + spaceMarkerExtentCount;
     final tagMatches = _getTagMatches(text);
+    final baseOffsetDifference = baseOffset - _previousCursorPosition;
+    final extentOffsetDifference = extentOffset - _previousCursorPositionExtent;
+    allMatches = [];
+
+    debugPrint('cursorController: $baseOffset ($adjustedOffset) :: $extentOffset ($adjustedExtentOffset) :: $isCollapsed');
 
     if (isCollapsed) {      
-      debugPrint('cursorController: $baseOffset $adjustedOffset $isCollapsed');
-
       final matchWithCursor = tagMatches
           .where((match) => match.start < adjustedOffset && match.end > adjustedOffset)
           .firstOrNull;
@@ -306,26 +311,26 @@ class TagTextEditingController<T> extends TextEditingController {
       }
 
       final matchText = matchWithCursor.group(0)!;
-      final matchSpaceMarkerCount = text.substring(0, matchWithCursor.end).split(spaceMarker).length - 1;
+      final matchspaceMarkerBaseCount = text.substring(0, matchWithCursor.end).split(spaceMarker).length - 1;
 
       debugPrint('diff: ${baseOffset - _previousCursorPosition}');
 
       final spaceBeforeTagCount = text.substring(0, matchWithCursor.start).split(spaceMarker).length - 1;
 
-      // The cursor is inside a tag.
-      if ((baseOffset - _previousCursorPosition).abs() == 1) {
+      // The cursor is inside a tag.      
+      if (baseOffsetDifference.abs() == 1) {
         // The user probably moved into the tag with the arrow keys.
         // Move the cursor to the other side.
         // This is not flawless, as the user could have moved into the tag
         // by some other means, but this is the most common case.
 
-        debugPrint("IN HERE");
+        final setOffset = baseOffsetDifference == 1 ? (matchWithCursor.end - matchspaceMarkerBaseCount) : (matchWithCursor.start - spaceBeforeTagCount);
+
+        debugPrint("IN HERE ${baseOffsetDifference == 1} ${matchWithCursor.end} ${matchWithCursor.start} $matchspaceMarkerBaseCount $spaceBeforeTagCount :: $setOffset");
 
         _shouldIgnoreCursorChange = true;
         selection = TextSelection.collapsed(
-          offset: (baseOffset - _previousCursorPosition) == 1
-              ? matchWithCursor.end - matchSpaceMarkerCount
-              : matchWithCursor.start - spaceBeforeTagCount
+          offset: setOffset
         );
         setPreviousCursorPosition();
         return;
@@ -340,68 +345,95 @@ class TagTextEditingController<T> extends TextEditingController {
         return;
       }
 
-      debugPrint("ZZZ ${matchWithCursor.end} ${matchSpaceMarkerCount} ${matchWithCursor.start}");
+      debugPrint("ZZZ ${matchWithCursor.end} $matchspaceMarkerBaseCount ${matchWithCursor.start}");
 
-      final areInsideTag = (baseOffset > matchWithCursor.start - matchSpaceMarkerCount) && (baseOffset < matchWithCursor.end - matchSpaceMarkerCount - 1);
+      final areInsideTag = (baseOffset > matchWithCursor.start - matchspaceMarkerBaseCount) && (baseOffset < matchWithCursor.end - matchspaceMarkerBaseCount - 1);
 
-      debugPrint('areInsideTag: $areInsideTag ||| $baseOffset ${matchWithCursor.end - matchSpaceMarkerCount - 1} ${matchWithCursor.start} --- ${matchSpaceMarkerCount}');
+      debugPrint('areInsideTag: $areInsideTag ||| $baseOffset ${matchWithCursor.end - matchspaceMarkerBaseCount - 1} ${matchWithCursor.start} --- $matchspaceMarkerBaseCount');
 
       _shouldIgnoreCursorChange = true;
       selection = TextSelection.collapsed(
         offset: areInsideTag
-            ? matchWithCursor.end - matchSpaceMarkerCount
+            ? matchWithCursor.end - matchspaceMarkerBaseCount
             : matchWithCursor.start - spaceBeforeTagCount,
       );
       setPreviousCursorPosition();
     } else {
-      final adjustedExtentOffset = extentOffset + spaceMarkerCount;
-
       // Check if the selection covers a tag
-      final matchWithBase = tagMatches
-          .where((match) => match.start < adjustedOffset - 1 && match.end >= adjustedOffset + 1)
-          .firstOrNull;
       final matchWithExtent = tagMatches
           .where(
-              (match) => match.start < adjustedExtentOffset - 1 && match.end >= adjustedExtentOffset + 1)
+              (match) => match.start < adjustedExtentOffset && match.end >= adjustedExtentOffset)
           .firstOrNull;
 
       debugPrint("ALL MATCHES AND START/END: ${tagMatches.map((match) => "${match.group(0)} ${match.start} ${match.end}").toList()}");
 
-      debugPrint("EXTENT OFFSET: $adjustedOffset $adjustedExtentOffset ${matchWithBase?.group(0)} ${matchWithExtent?.group(0)}");   
+      debugPrint("EXTENT OFFSET: $adjustedOffset $adjustedExtentOffset ${matchWithExtent?.group(0)}");   
 
       allMatches = tagMatches
-        .where((match) => match.start <= max(adjustedOffset, adjustedExtentOffset) && match.end >= min(adjustedOffset, adjustedExtentOffset) + 1)
+        .where((match) => match.start < max(adjustedOffset, adjustedExtentOffset) && match.end > min(adjustedOffset, adjustedExtentOffset) + 1)
         .map((match) => _tagBackendFormatsToTaggables[match.group(0)!] as T).toList();
 
       debugPrint("ALL MATCHES: ${allMatches.map((t) => toFrontendConverter(t)).toList()}");
 
       final baseBeforeExtent = baseOffset < extentOffset;
 
-      if (matchWithBase == null && matchWithExtent == null) {
+      if (matchWithExtent == null) {
         // The selection does not cover a tag.
+        setPreviousCursorPosition();
         return;
       }
 
-      final extentOffsetDifference = extentOffset - _previousCursorPositionExtent;
-
       debugPrint('extentOffsetDifference: $extentOffsetDifference');
-      debugPrint('matchWithBase: ${matchWithBase?.group(0)} ${matchWithBase?.start} ${matchWithBase?.end}');
-      debugPrint('matchWithExtent: ${matchWithExtent?.group(0)} ${matchWithExtent?.start} ${matchWithExtent?.end}');
+      debugPrint('matchWithExtent: ${matchWithExtent.group(0)} ${matchWithExtent.start} ${matchWithExtent.end}');
       debugPrint('baseBeforeExtent: $baseBeforeExtent $baseOffset $extentOffset');
       
-      final spaceBeforeTagCount = text.substring(0, matchWithBase?.start ?? baseOffset).split(spaceMarker).length - 1;
+      final spaceBeforeExtentStartTagCount = text.substring(0, matchWithExtent.start).split(spaceMarker).length - 1;
+      final spaceBeforeExtentEndTagCount = text.substring(0, matchWithExtent.end).split(spaceMarker).length - 1;
+      debugPrint('spaceBeforeExtentTagCount: $spaceBeforeExtentStartTagCount $spaceBeforeExtentEndTagCount');
 
-     _shouldIgnoreCursorChange = true;
-      // The selection covers a tag. Select the tag as a whole.
-      selection = TextSelection(
-        baseOffset: baseBeforeExtent
-            ? (matchWithBase?.end ?? adjustedOffset) - spaceMarkerCount
-            : (matchWithBase?.start ?? adjustedOffset) - spaceBeforeTagCount,
-        extentOffset: baseBeforeExtent
-            ? extentOffsetDifference > 1 ? matchWithExtent?.end ?? extentOffset : ((matchWithExtent?.start ?? extentOffset) - 1)
-            : extentOffsetDifference > 1 ? matchWithExtent?.end ?? extentOffset : (matchWithExtent?.start ?? (extentOffset - 1)),
+      if (extentOffsetDifference.abs() == 1) {
+        int newExtentOffset;
+        if (baseBeforeExtent) {
+          if (extentOffsetDifference == 1) {
+            // SELECTING LEFT TO RIGHT
+            debugPrint("IN HERE A ${matchWithExtent.end} $spaceBeforeExtentEndTagCount");
+            newExtentOffset = matchWithExtent.end - spaceBeforeExtentEndTagCount;
+          } else {
+            // UNSELECTING RIGHT TO LEFT
+            debugPrint("IN HERE B ${matchWithExtent.start} $spaceMarkerBaseCount");
+            newExtentOffset = matchWithExtent.start - spaceMarkerBaseCount;
+          }
+        } else {
+          if (extentOffsetDifference == 1) {
+            // UNSELECTING LEFT TO RIGHT
+            debugPrint("IN HERE C ${matchWithExtent.end} $spaceBeforeExtentEndTagCount");
+            newExtentOffset = matchWithExtent.end - spaceBeforeExtentEndTagCount;
+          } else {
+            // SELECTING RIGHT TO LEFT
+            debugPrint("IN HERE D ${matchWithExtent.start} $spaceBeforeExtentStartTagCount");
+            newExtentOffset = matchWithExtent.start - spaceBeforeExtentStartTagCount;
+          }
+        }
+        
+        _shouldIgnoreCursorChange = true; 
+        selection = TextSelection(
+          baseOffset: baseOffset,
+          extentOffset: newExtentOffset,
+        );
+        setPreviousCursorPosition();
+        return;
+      }
+
+      final areInsideTag = (extentOffset > matchWithExtent.start - spaceBeforeExtentEndTagCount) && (extentOffset < matchWithExtent.end - spaceBeforeExtentEndTagCount);
+
+      debugPrint('areInsideTag: $areInsideTag ||| $extentOffset ${matchWithExtent.end - spaceBeforeExtentEndTagCount - 1} ${matchWithExtent.start} --- $spaceBeforeExtentStartTagCount $spaceBeforeExtentEndTagCount');
+
+      _shouldIgnoreCursorChange = true;
+      selection = TextSelection.collapsed(
+        offset: areInsideTag
+            ? matchWithExtent.end - spaceBeforeExtentEndTagCount
+            : matchWithExtent.start - spaceBeforeExtentEndTagCount,
       );
-      setPreviousCursorPosition();
     }
   }
 

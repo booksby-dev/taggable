@@ -26,7 +26,7 @@ class Topic extends Taggable {
 const users = <User>[
   User(id: 'ja', name: 'Jason'),
   User(id: 'eva_rostova', name: 'Commander Eva Rostova'),
-  User(id: 'spacecraft_interior', name: 'Spacecraft Interior'),
+  User(id: 'spacecraft_interior_testing', name: 'Spacecraft Interior'),
   User(id: 'alice', name: 'Alice', icon: Icons.person_outline),
   User(id: 'bobUniqueId', name: 'Bob'),
   User(id: 'charlie', name: 'Charlie'),
@@ -321,7 +321,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   // This is an example of setting the initial text.
                   _controller.setText(
-                    "A bright image appears due to Europa's reflected light. @ja and @eva_rostova are in the @spacecraft_interior. They look at the picture.",
+                    "A bright image appears due to Europa's reflected light. @ja and @eva_rostova are in the @spacecraft_interior_testing. They look at the picture.",
                     backendToTaggable,
                   );
                   _focusNode.requestFocus();
