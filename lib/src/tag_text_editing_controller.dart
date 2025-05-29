@@ -56,6 +56,7 @@ class TagTextEditingController<T> extends TextEditingController {
     //_checkTagRecognizabilityController();
     _cursorController();
     final query = _checkTagQueryController();
+    
     if (query != null) {
       _availableTaggablesController(query.$1, query.$2);
     }
@@ -104,6 +105,7 @@ class TagTextEditingController<T> extends TextEditingController {
         .map((style) =>
             '${RegExp.escape(style.prefix)}$spaceMarker*(${style.regExp})')
         .join('|');
+        
     return RegExp(pattern).allMatches(text);
   }
 
@@ -144,12 +146,16 @@ class TagTextEditingController<T> extends TextEditingController {
       final tagStyle = tagStyles
           .where((style) => match.group(0)!.startsWith(style.prefix))
           .firstOrNull;
+
+      debugPrint('tagStyle: $tagStyle');
       if (tagStyle == null) {
         tmpText.write(match.group(0));
         continue;
       }
-      final taggable = await backendToTaggable(
+      
+      var taggable = await backendToTaggable(
           tagStyle.prefix, match.group(0)!.substring(tagStyle.prefix.length));
+
       if (taggable == null) {
         tmpText.write(match.group(0));
         continue;
@@ -295,7 +301,7 @@ class TagTextEditingController<T> extends TextEditingController {
     final extentOffsetDifference = extentOffset - _previousCursorPositionExtent;
     allMatches = [];
 
-    debugPrint('cursorController: $baseOffset ($adjustedOffset) :: $extentOffset ($adjustedExtentOffset) :: $isCollapsed');
+    //debugPrint('cursorController: $baseOffset ($adjustedOffset) :: $extentOffset ($adjustedExtentOffset) :: $isCollapsed');
 
     if (isCollapsed) {      
       final matchWithCursor = tagMatches

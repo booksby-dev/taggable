@@ -322,7 +322,8 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   // This is an example of setting the initial text.
                   _controller.setText(
-                    "A bright image appears due to Europa's reflected light. @ja and @eva_rostova are in the @spacecraft_interior_testing. They look at the picture.",
+                    "Hi @bobUniqueId, you are in @space right now.",
+                    //"A bright image appears due to Europa's reflected light. @ja and @eva_rostova are in the @spacecraft_interior_testing. They look at the picture.",
                     backendToTaggable,
                   );
                   _focusNode.requestFocus();
