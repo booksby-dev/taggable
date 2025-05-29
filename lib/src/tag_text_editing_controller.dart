@@ -477,7 +477,7 @@ class TagTextEditingController<T> extends TextEditingController {
       debugPrint('match: ${match.group(0)}');
       // If the match can be parsed as a tag, it is valid
       if (_parseTagString(match.group(0)!) != null) continue;
-
+      
       // The tag is not recognisable, so it is invalid
       // Check if the match is a superstring of a valid tag
       final originalTag = _tagBackendFormatsToTaggables.keys
@@ -499,7 +499,7 @@ class TagTextEditingController<T> extends TextEditingController {
         debugPrint('previousCursorPosition: $_previousCursorPosition');
         debugPrint('match.end: ${match.end}');
 
-        if (missesFinalCharacter && _previousCursorPosition >= match.end) {
+        if (missesFinalCharacter) {
           final start = text.substring(0, selection.baseOffset).lastIndexOf(match.group(0)!);
           final end = start + match.group(0)!.length;
 
@@ -530,20 +530,20 @@ class TagTextEditingController<T> extends TextEditingController {
     }
     // Next, check for tags that have been broken by trimming at the start
     // For these tags, the prefix is missing its first character
-    final brokenTags = _tagBackendFormatsToTaggables.keys.expand((key) {
-      // Create a regexp that matches occurences of 'key' without the first
-      // character. e.g. if 'key' is '@tag', the regexp should match 'tag'
-      // but not '@tag'.
-      final pattern = '(?<!${key.substring(0, 1)})${key.substring(1)}';
-      return RegExp(pattern).allMatches(text);
-    });
-    for (final brokenTag in brokenTags) {
-      // Remove the entire tag. The selection can remain the same.
-      value = TextEditingValue(
-        text: text.replaceRange(brokenTag.start, brokenTag.end, ''),
-        selection: TextSelection.collapsed(offset: brokenTag.start),
-      );
-    }
+    // final brokenTags = _tagBackendFormatsToTaggables.keys.expand((key) {
+    //   // Create a regexp that matches occurences of 'key' without the first
+    //   // character. e.g. if 'key' is '@tag', the regexp should match 'tag'
+    //   // but not '@tag'.
+    //   final pattern = '(?<!${key.substring(0, 1)})${key.substring(1)}';
+    //   return RegExp(pattern).allMatches(text);
+    // });
+    // for (final brokenTag in brokenTags) {
+    //   // Remove the entire tag. The selection can remain the same.
+    //   value = TextEditingValue(
+    //     text: text.replaceRange(brokenTag.start, brokenTag.end, ''),
+    //     selection: TextSelection.collapsed(offset: brokenTag.start),
+    //   );
+    // }
   }
 
   /// A listener that searches for taggables based on the current tag prompt.

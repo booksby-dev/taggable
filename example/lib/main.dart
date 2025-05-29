@@ -26,8 +26,9 @@ class Topic extends Taggable {
 const users = <User>[
   User(id: 'ja', name: 'Jason'),
   User(id: 'eva_rostova', name: 'Commander Eva Rostova'),
-  User(id: 'spacecraft_interior_testing', name: 'Spacecraft Interior'),
-  User(id: 'alice', name: 'Alice', icon: Icons.person_outline),
+  User(id: 'craft_space_interior', name: 'Craft space Interior'),
+  User(id: 'space', name: 'Space', icon: Icons.person_outline),
+  User(id: 'baby_got_back', name: 'Baby got back'),
   User(id: 'bobUniqueId', name: 'Bob'),
   User(id: 'charlie', name: 'Charlie'),
   User(id: 'carolUniqueId', name: 'Carol'),
