@@ -4,30 +4,22 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_taggable/flutter_taggable.dart';
 
-class Taggable {
-  const Taggable({required this.id, required this.name, required this.icon});
-
-  final String id;
-  final String name;
-  final IconData icon;
-}
-
-class User extends Taggable {
+ class User extends Taggable {
   const User(
-      {required super.id, required super.name, super.icon = Icons.person});
+      {required super.id, required super.name});
 }
 
 class Topic extends Taggable {
   const Topic(
-      {required super.id, required super.name, super.icon = Icons.topic});
+      {required super.id, required super.name});
 }
 
 /// A list of users to search from.
 const users = <User>[
-  User(id: 'ja', name: 'Jason'),
+  User(id: 'jason_mendoza', name: 'Jason'),
   User(id: 'eva_rostova', name: 'Commander Eva Rostova'),
   User(id: 'craft_space_interior', name: 'Craft space Interior'),
-  User(id: 'space', name: 'Space', icon: Icons.person_outline),
+  User(id: 'space', name: 'Space'),
   User(id: 'baby_got_back', name: 'Baby got back'),
   User(id: 'bobUniqueId', name: 'Bob'),
   User(id: 'charlie', name: 'Charlie'),
@@ -81,7 +73,7 @@ class _HomePageState extends State<HomePage> {
 
   /// The [TagTextEditingController] is used to control the [TextField] and
   /// handle the tagging logic.
-  late final TagTextEditingController _controller;
+  late final NewTagEditingController _controller;
 
   /// The [_overlayEntry] is used to show the overlay with the list of
   /// taggables.
@@ -96,18 +88,14 @@ class _HomePageState extends State<HomePage> {
     _focusNode = FocusNode();
 
     // Initialize the [TagTextEditingController] with the required parameters.
-    _controller = TagTextEditingController<Taggable>(
-      searchTaggables: searchTaggables,
-      buildTaggables: buildTaggables,
-      toFrontendConverter: (taggable) => taggable.name,
-      toBackendConverter: (taggable) => taggable.id,
-      textStyleBuilder: textStyleBuilder,
-      tagStyles: [TagStyle(prefix: '@', showPrefix: false, tagColor: Colors.blue, highlightTagColor: Colors.red, onTapped: (taggable) => debugPrint('Tapped ${taggable.name}')), const TagStyle(prefix: '#', showPrefix: false, tagColor: Colors.green, highlightTagColor: Colors.red)],
+    _controller = NewTagEditingController<Taggable>(  
+      allTags: [...users, ...topics],
+      tagTapped: (taggable) => debugPrint('Tapped ${taggable.name}'),
     );
 
     // Add a listener to update the [backendFormat] when the text changes.
     _controller.addListener(
-        () => setState(() => backendFormat = _controller.textInBackendFormat));
+        () => setState(() => backendFormat = _controller.text));
   }
 
   @override
@@ -147,7 +135,7 @@ class _HomePageState extends State<HomePage> {
   ) async {
     return convertTagTextToInlineSpans<Taggable>(
       backendFormat,
-      tagStyles: _controller.tagStyles,
+      tagStyles: [],
       backendToTaggable: backendToTaggable,
       taggableToInlineSpan: (taggable, tagStyle) {
         return TextSpan(
@@ -157,7 +145,7 @@ class _HomePageState extends State<HomePage> {
             ..onTap = () => ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Tapped ${taggable.name} with id ${taggable.id}',
+                      'Tapped ${taggable.name} with id ${taggable.getId()}',
                     ),
                     duration: const Duration(seconds: 2),
                   ),
@@ -201,7 +189,7 @@ class _HomePageState extends State<HomePage> {
                 children: availableTaggables.map((taggable) {
                   // We show the list of taggables in a [ListView].
                   return ListTile(
-                    leading: Icon(taggable.icon),
+                    leading: const Icon(Icons.person_outline),
                     title: Text(taggable.name),
                     tileColor: Theme.of(context).colorScheme.primaryContainer,
                     onTap: () {
@@ -255,10 +243,10 @@ class _HomePageState extends State<HomePage> {
   /// This method converts the backend format to the taggable object.
   FutureOr<Taggable?> backendToTaggable(String prefix, String id) {
     return switch (prefix) {
-      '@' => users.where((user) => user.id == id).firstOrNull,
-      '#' => topics.where((topic) => topic.id == id).firstOrNull,
+      '@' => users.where((user) => user.getId() == id).firstOrNull,
+      '#' => topics.where((topic) => topic.getId() == id).firstOrNull,
       'all:' => [...users, ...topics]
-          .where((taggable) => taggable.id == id)
+          .where((taggable) => taggable.getId() == id)
           .firstOrNull,
       _ => null,
     };
@@ -321,11 +309,7 @@ class _HomePageState extends State<HomePage> {
               TextButton(
                 onPressed: () {
                   // This is an example of setting the initial text.
-                  _controller.setText(
-                    "Hi @bobUniqueId, you are in @space right now.",
-                    //"A bright image appears due to Europa's reflected light. @ja and @eva_rostova are in the @spacecraft_interior_testing. They look at the picture.",
-                    backendToTaggable,
-                  );
+                  _controller.text = "I would like to talk to <jason_mendoza> and <eva_rostova> about the sun.";
                   _focusNode.requestFocus();
                 },
                 child: const Text('Set initial text'),

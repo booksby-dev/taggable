@@ -21,7 +21,7 @@ import 'utils/tag.dart';
 /// allows for the insertion of taggables at the current cursor position,
 /// bypassing the regular tagging flow, e.g. for tags that are typically not
 /// actively chosen by the user (e.g. the @here tag in Slack and Discord).
-class TagTextEditingController<T> extends TextEditingController {
+class TagTextEditingController<Taggable> extends TextEditingController {
   TagTextEditingController({
     required this.searchTaggables,
     required this.buildTaggables,
@@ -63,17 +63,17 @@ class TagTextEditingController<T> extends TextEditingController {
   }
 
   /// Searches for taggables based on the tag prefix (e.g. '@') and query (e.g. 'Ali').
-  final FutureOr<Iterable<T>> Function(String prefix, String? query)
+  final FutureOr<Iterable<Taggable>> Function(String prefix, String? query)
       searchTaggables;
 
   /// Builds the list of taggables, if any.
-  final Future<T?> Function(FutureOr<Iterable<T>> taggables) buildTaggables;
+  final Future<Taggable?> Function(FutureOr<Iterable<Taggable>> taggables) buildTaggables;
 
   /// Converts a taggable to a string to display in the linked text field.
-  final String Function(T taggable) toFrontendConverter;
+  final String Function(Taggable taggable) toFrontendConverter;
 
   /// Converts a taggable to a unique identifier for internal and backend use.
-  final String Function(T taggable) toBackendConverter;
+  final String Function(Taggable taggable) toBackendConverter;
 
   /// A list of [TagStyle] styles that are supported by the controller.
   final List<TagStyle> tagStyles;
@@ -82,18 +82,18 @@ class TagTextEditingController<T> extends TextEditingController {
   ///
   /// If this function is not provided, the text style will be the same as the
   /// default text style of the text field.
-  final TextStyle? Function(BuildContext context, String prefix, T taggable)?
+  final TextStyle? Function(BuildContext context, String prefix, Taggable taggable)?
       textStyleBuilder;
 
   /// A map that maps taggable backend formats to taggable objects.
-  Map<String, T> _tagBackendFormatsToTaggables = {};
+  Map<String, Taggable> _tagBackendFormatsToTaggables = {};
 
   /// The cursor position before the last change. Used for intuitive cursor movement.
   int _previousCursorPosition = -1;
   int _previousCursorPositionExtent = 0;
 
   /// The matches that are currently selected.
-  List<T> allMatches = [];
+  List<Taggable> allMatches = [];
   bool _shouldIgnoreCursorChange = false;
 
   /// The text formatted in backend format. Do not use `controller.text` directly.
@@ -129,7 +129,7 @@ class TagTextEditingController<T> extends TextEditingController {
   /// It has the 'FutureOr' signature to allow for asynchronous operations.
   void setText(
     String backendText,
-    FutureOr<T?> Function(String prefix, String backendString)
+    FutureOr<Taggable?> Function(String prefix, String backendString)
         backendToTaggable,
   ) async {
 
@@ -138,7 +138,7 @@ class TagTextEditingController<T> extends TextEditingController {
     final StringBuffer tmpText = StringBuffer();
     int position = 0;
 
-    for (final Match match in _getTagMatches(backendText)) {
+    for (final Match match in _getTagMatches(backendText)) {      
       final textBeforeMatch = backendText.substring(position, match.start);
       tmpText.write(textBeforeMatch);
       position = match.end;
@@ -160,14 +160,19 @@ class TagTextEditingController<T> extends TextEditingController {
         tmpText.write(match.group(0));
         continue;
       }
-      final tag = Tag<T>(taggable: taggable, style: tagStyle);
-      final tagText = tag.toModifiedString(
+      final tag = Tag<Taggable>(taggable: taggable, style: tagStyle);
+      var tagText = tag.toModifiedString(
         toFrontendConverter,
         toBackendConverter,
         isFrontend: false,
       );
 
       _tagBackendFormatsToTaggables[tagText] = taggable;
+
+      final overageLength = (match.group(0))!.length - tagText.length;
+      if (overageLength > 0) {
+        tagText += List.generate(overageLength, (index) => spaceMarker).join();
+      }
 
       tmpText.write(tagText);
     }
@@ -185,14 +190,14 @@ class TagTextEditingController<T> extends TextEditingController {
   }
 
   /// Parses a tag string (e.g. "@tag") and returns a tag object.
-  Tag<T>? _parseTagString(String tagString) {
+  Tag<Taggable>? _parseTagString(String tagString) {
     final tagStyle = tagStyles
         .where((style) => tagString.startsWith(style.prefix))
         .firstOrNull;
     final taggable = _tagBackendFormatsToTaggables[tagString];
     if (tagStyle == null || taggable == null) return null;
 
-    return Tag<T>(taggable: taggable, style: tagStyle);
+    return Tag<Taggable>(taggable: taggable, style: tagStyle);
   }
 
   @override
@@ -235,7 +240,7 @@ class TagTextEditingController<T> extends TextEditingController {
         textSpanChildren.add(TextSpan(
           text: tagText.substring(0, lastSpaceMarker + 1),
           style: const TextStyle(letterSpacing: 0),
-        ));
+        ));        
 
         textSpanChildren.add(stylizedTag(tagText.substring(lastSpaceMarker + 1), tag, textStyle));
         continue;
@@ -374,7 +379,7 @@ class TagTextEditingController<T> extends TextEditingController {
 
       allMatches = tagMatches
         .where((match) => match.start < max(adjustedOffset, adjustedExtentOffset) && match.end > min(adjustedOffset, adjustedExtentOffset) + 1)
-        .map((match) => _tagBackendFormatsToTaggables[match.group(0)!] as T).toList();
+        .map((match) => _tagBackendFormatsToTaggables[match.group(0)!] as Taggable).toList();
 
       final baseBeforeExtent = baseOffset < extentOffset;
 
@@ -531,7 +536,7 @@ class TagTextEditingController<T> extends TextEditingController {
         continue;
       }
 
-      final taggable = _tagBackendFormatsToTaggables[originalTag] as T;
+      final taggable = _tagBackendFormatsToTaggables[originalTag] as Taggable;
       final tagStyle = tagStyles
           .where((style) => originalTag.startsWith(style.prefix))
           .first;
@@ -581,9 +586,9 @@ class TagTextEditingController<T> extends TextEditingController {
   ///
   /// Insertion typically replaces any tag prompt with the taggable. The number
   /// of characters to replace is given by [charactersToReplace].
-  void insertTaggable(String prefix, T taggable, int charactersToReplace, {bool addSpace = false}) {
+  void insertTaggable(String prefix, Taggable taggable, int charactersToReplace, {bool addSpace = false}) {
     final tagStyle = tagStyles.where((style) => prefix == style.prefix).first;
-    final tag = Tag<T>(taggable: taggable, style: tagStyle);
+    final tag = Tag<Taggable>(taggable: taggable, style: tagStyle);
     final tagText = tag.toModifiedString(
       toFrontendConverter,
       toBackendConverter,

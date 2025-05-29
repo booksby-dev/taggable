@@ -45,6 +45,7 @@ Future<List<InlineSpan>> convertTagTextToInlineSpans<T>(
   required InlineSpan Function(T taggable, TagStyle tagStyle)
       taggableToInlineSpan,
 }) async {
+  debugPrint('CONVERTER: $text');
   final pattern = tagStyles
       .map((style) => '${RegExp.escape(style.prefix)}(${style.regExp})')
       .join('|');
