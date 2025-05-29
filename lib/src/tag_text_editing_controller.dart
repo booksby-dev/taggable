@@ -302,7 +302,7 @@ class TagTextEditingController<T> extends TextEditingController {
           .where((match) => match.start < adjustedOffset && match.end > adjustedOffset)
           .firstOrNull;
       
-      debugPrint("matchWithCursor: ${matchWithCursor?.group(0)} ${matchWithCursor?.start} ${matchWithCursor?.end}");
+      // debugPrint("matchWithCursor: ${matchWithCursor?.group(0)} ${matchWithCursor?.start} ${matchWithCursor?.end}");
 
       if (matchWithCursor == null) {
         // The cursor is not inside a tag.
@@ -313,7 +313,7 @@ class TagTextEditingController<T> extends TextEditingController {
       final matchText = matchWithCursor.group(0)!;
       final matchspaceMarkerBaseCount = text.substring(0, matchWithCursor.end).split(spaceMarker).length - 1;
 
-      debugPrint('diff: ${baseOffset - _previousCursorPosition}');
+      // debugPrint('diff: ${baseOffset - _previousCursorPosition}');
 
       final spaceBeforeTagCount = text.substring(0, matchWithCursor.start).split(spaceMarker).length - 1;
 
@@ -326,7 +326,7 @@ class TagTextEditingController<T> extends TextEditingController {
 
         final setOffset = baseOffsetDifference == 1 ? (matchWithCursor.end - matchspaceMarkerBaseCount) : (matchWithCursor.start - spaceBeforeTagCount);
 
-        debugPrint("IN HERE ${baseOffsetDifference == 1} ${matchWithCursor.end} ${matchWithCursor.start} $matchspaceMarkerBaseCount $spaceBeforeTagCount :: $setOffset");
+        // debugPrint("IN HERE ${baseOffsetDifference == 1} ${matchWithCursor.end} ${matchWithCursor.start} $matchspaceMarkerBaseCount $spaceBeforeTagCount :: $setOffset");
 
         _shouldIgnoreCursorChange = true;
         selection = TextSelection.collapsed(
@@ -345,11 +345,11 @@ class TagTextEditingController<T> extends TextEditingController {
         return;
       }
 
-      debugPrint("ZZZ ${matchWithCursor.end} $matchspaceMarkerBaseCount ${matchWithCursor.start}");
+//      debugPrint("ZZZ ${matchWithCursor.end} $matchspaceMarkerBaseCount ${matchWithCursor.start}");
 
       final areInsideTag = (baseOffset > matchWithCursor.start - matchspaceMarkerBaseCount) && (baseOffset < matchWithCursor.end - matchspaceMarkerBaseCount - 1);
 
-      debugPrint('areInsideTag: $areInsideTag ||| $baseOffset ${matchWithCursor.end - matchspaceMarkerBaseCount - 1} ${matchWithCursor.start} --- $matchspaceMarkerBaseCount');
+  //    debugPrint('areInsideTag: $areInsideTag ||| $baseOffset ${matchWithCursor.end - matchspaceMarkerBaseCount - 1} ${matchWithCursor.start} --- $matchspaceMarkerBaseCount');
 
       _shouldIgnoreCursorChange = true;
       selection = TextSelection.collapsed(
@@ -365,15 +365,10 @@ class TagTextEditingController<T> extends TextEditingController {
               (match) => match.start < adjustedExtentOffset && match.end >= adjustedExtentOffset)
           .firstOrNull;
 
-      debugPrint("ALL MATCHES AND START/END: ${tagMatches.map((match) => "${match.group(0)} ${match.start} ${match.end}").toList()}");
-
-      debugPrint("EXTENT OFFSET: $adjustedOffset $adjustedExtentOffset ${matchWithExtent?.group(0)}");   
 
       allMatches = tagMatches
         .where((match) => match.start < max(adjustedOffset, adjustedExtentOffset) && match.end > min(adjustedOffset, adjustedExtentOffset) + 1)
         .map((match) => _tagBackendFormatsToTaggables[match.group(0)!] as T).toList();
-
-      debugPrint("ALL MATCHES: ${allMatches.map((t) => toFrontendConverter(t)).toList()}");
 
       final baseBeforeExtent = baseOffset < extentOffset;
 
@@ -383,12 +378,15 @@ class TagTextEditingController<T> extends TextEditingController {
         return;
       }
 
-      debugPrint('extentOffsetDifference: $extentOffsetDifference');
-      debugPrint('matchWithExtent: ${matchWithExtent.group(0)} ${matchWithExtent.start} ${matchWithExtent.end}');
-      debugPrint('baseBeforeExtent: $baseBeforeExtent $baseOffset $extentOffset');
-      
       final spaceBeforeExtentStartTagCount = text.substring(0, matchWithExtent.start).split(spaceMarker).length - 1;
       final spaceBeforeExtentEndTagCount = text.substring(0, matchWithExtent.end).split(spaceMarker).length - 1;
+
+      debugPrint("ALL MATCHES AND START/END: ${tagMatches.map((match) => "${match.group(0)} ${match.start} ${match.end}").toList()}");
+      debugPrint("EXTENT OFFSET: $adjustedOffset $adjustedExtentOffset ${matchWithExtent?.group(0)}");   
+      debugPrint("ALL MATCHES: ${allMatches.map((t) => toFrontendConverter(t)).toList()}");
+      debugPrint('extentOffsetDifference: $extentOffsetDifference');
+      debugPrint('matchWithExtent: ${matchWithExtent.group(0)} ${matchWithExtent.start} ${matchWithExtent.end}');
+      debugPrint('baseBeforeExtent: $baseBeforeExtent $baseOffset $extentOffset');      
       debugPrint('spaceBeforeExtentTagCount: $spaceBeforeExtentStartTagCount $spaceBeforeExtentEndTagCount');
 
       if (extentOffsetDifference.abs() == 1) {
@@ -396,21 +394,21 @@ class TagTextEditingController<T> extends TextEditingController {
         if (baseBeforeExtent) {
           if (extentOffsetDifference == 1) {
             // SELECTING LEFT TO RIGHT
-            debugPrint("IN HERE A ${matchWithExtent.end} $spaceBeforeExtentEndTagCount");
+            //debugPrint("IN HERE A ${matchWithExtent.end} $spaceBeforeExtentEndTagCount");
             newExtentOffset = matchWithExtent.end - spaceBeforeExtentEndTagCount;
           } else {
             // UNSELECTING RIGHT TO LEFT
-            debugPrint("IN HERE B ${matchWithExtent.start} $spaceMarkerBaseCount");
+            //debugPrint("IN HERE B ${matchWithExtent.start} $spaceMarkerBaseCount");
             newExtentOffset = matchWithExtent.start - spaceMarkerBaseCount;
           }
         } else {
           if (extentOffsetDifference == 1) {
             // UNSELECTING LEFT TO RIGHT
-            debugPrint("IN HERE C ${matchWithExtent.end} $spaceBeforeExtentEndTagCount");
+            //debugPrint("IN HERE C ${matchWithExtent.end} $spaceBeforeExtentEndTagCount");
             newExtentOffset = matchWithExtent.end - spaceBeforeExtentEndTagCount;
           } else {
             // SELECTING RIGHT TO LEFT
-            debugPrint("IN HERE D ${matchWithExtent.start} $spaceBeforeExtentStartTagCount");
+            //debugPrint("IN HERE D ${matchWithExtent.start} $spaceBeforeExtentStartTagCount");
             newExtentOffset = matchWithExtent.start - spaceBeforeExtentStartTagCount;
           }
         }
