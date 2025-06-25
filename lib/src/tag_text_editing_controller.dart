@@ -15,7 +15,7 @@ import 'utils/tag.dart';
 /// be retrieved from the controller's `textInBackendFormat` property. Do not
 /// use `controller.text` directly, as the internal format typically differs.
 ///
-/// Additional programmatical modifications to the text that this controller
+/// Additional programmatic modifications to the text that this controller
 /// manages should be done with caution, as it may interfere with the tagging
 /// behaviour. However, the controller exposes an 'insertTaggable' method that
 /// allows for the insertion of taggables at the current cursor position,
@@ -56,7 +56,7 @@ class TagTextEditingController<T> extends TextEditingController {
     //_checkTagRecognizabilityController();
     _cursorController();
     final query = _checkTagQueryController();
-    
+
     if (query != null) {
       _availableTaggablesController(query.$1, query.$2);
     }
@@ -105,7 +105,7 @@ class TagTextEditingController<T> extends TextEditingController {
         .map((style) =>
             '${RegExp.escape(style.prefix)}$spaceMarker*(${style.regExp})')
         .join('|');
-        
+
     return RegExp(pattern).allMatches(text);
   }
 
@@ -113,7 +113,7 @@ class TagTextEditingController<T> extends TextEditingController {
 
   bool _onKey(KeyEvent event) {
     final key = event.logicalKey.keyId;
-    
+
     // delete key
     if (event is KeyDownEvent) {
       if (key == 4294967304) {
@@ -132,7 +132,6 @@ class TagTextEditingController<T> extends TextEditingController {
     FutureOr<T?> Function(String prefix, String backendString)
         backendToTaggable,
   ) async {
-
     final prevSelection = selection;
 
     final StringBuffer tmpText = StringBuffer();
@@ -152,7 +151,7 @@ class TagTextEditingController<T> extends TextEditingController {
         tmpText.write(match.group(0));
         continue;
       }
-      
+
       var taggable = await backendToTaggable(
           tagStyle.prefix, match.group(0)!.substring(tagStyle.prefix.length));
 
@@ -177,9 +176,10 @@ class TagTextEditingController<T> extends TextEditingController {
     tmpText.write(textAfterAllTags);
 
     text = tmpText.toString(); //.trimRight();
-    
+
     // check if valid selection first
-    if (prevSelection.baseOffset >= 0 && prevSelection.baseOffset < text.length) {
+    if (prevSelection.baseOffset >= 0 &&
+        prevSelection.baseOffset < text.length) {
       selection = prevSelection;
     }
   }
@@ -237,7 +237,8 @@ class TagTextEditingController<T> extends TextEditingController {
           style: const TextStyle(letterSpacing: 0),
         ));
 
-        textSpanChildren.add(stylizedTag(tagText.substring(lastSpaceMarker + 1), tag, textStyle));
+        textSpanChildren.add(stylizedTag(
+            tagText.substring(lastSpaceMarker + 1), tag, textStyle));
         continue;
       }
 
@@ -251,18 +252,24 @@ class TagTextEditingController<T> extends TextEditingController {
 
   InlineSpan stylizedTag(String tagText, Tag tag, TextStyle? textStyle) {
     return WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: InkWell(
-            onTap: tag.style.onTapped != null ? () => tag.style.onTapped?.call(tag.taggable) : null,
-            child: Container(
-              decoration: BoxDecoration(
-                color: !allMatches.contains(tag.taggable) ? tag.style.tagColor : tag.style.highlightTagColor ?? tag.style.tagColor,
-                borderRadius: BorderRadius.circular(4),
-            ),
-            padding: tag.style.tagColor == null ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 6),
-            child: Text(tagText, style: textStyle),
+      alignment: PlaceholderAlignment.middle,
+      child: InkWell(
+        onTap: tag.style.onTapped != null
+            ? () => tag.style.onTapped?.call(tag.taggable)
+            : null,
+        child: Container(
+          decoration: BoxDecoration(
+            color: !allMatches.contains(tag.taggable)
+                ? tag.style.tagColor
+                : tag.style.highlightTagColor ?? tag.style.tagColor,
+            borderRadius: BorderRadius.circular(4),
           ),
+          padding: tag.style.tagColor == null
+              ? EdgeInsets.zero
+              : const EdgeInsets.symmetric(horizontal: 6),
+          child: Text(tagText, style: textStyle),
         ),
+      ),
     );
   }
 
@@ -282,18 +289,19 @@ class TagTextEditingController<T> extends TextEditingController {
     if (_shouldIgnoreCursorChange) {
       _shouldIgnoreCursorChange = false;
 
-
       setPreviousCursorPosition();
       return;
     }
-    
+
     final baseOffset = selection.baseOffset;
     final extentOffset = selection.extentOffset;
     final isCollapsed = selection.isCollapsed;
     if (baseOffset == -1) return;
 
-    final spaceMarkerBaseCount = text.substring(0, baseOffset).split(spaceMarker).length - 1;
-    final spaceMarkerExtentCount = text.substring(0, extentOffset).split(spaceMarker).length - 1;
+    final spaceMarkerBaseCount =
+        text.substring(0, baseOffset).split(spaceMarker).length - 1;
+    final spaceMarkerExtentCount =
+        text.substring(0, extentOffset).split(spaceMarker).length - 1;
     final adjustedOffset = baseOffset + spaceMarkerBaseCount;
     final adjustedExtentOffset = extentOffset + spaceMarkerExtentCount;
     final tagMatches = _getTagMatches(text);
@@ -303,11 +311,12 @@ class TagTextEditingController<T> extends TextEditingController {
 
     //debugPrint('cursorController: $baseOffset ($adjustedOffset) :: $extentOffset ($adjustedExtentOffset) :: $isCollapsed');
 
-    if (isCollapsed) {      
+    if (isCollapsed) {
       final matchWithCursor = tagMatches
-          .where((match) => match.start < adjustedOffset && match.end > adjustedOffset)
+          .where((match) =>
+              match.start < adjustedOffset && match.end > adjustedOffset)
           .firstOrNull;
-      
+
       // debugPrint("matchWithCursor: ${matchWithCursor?.group(0)} ${matchWithCursor?.start} ${matchWithCursor?.end}");
 
       if (matchWithCursor == null) {
@@ -317,27 +326,30 @@ class TagTextEditingController<T> extends TextEditingController {
       }
 
       final matchText = matchWithCursor.group(0)!;
-      final matchspaceMarkerBaseCount = text.substring(0, matchWithCursor.end).split(spaceMarker).length - 1;
+      final matchspaceMarkerBaseCount =
+          text.substring(0, matchWithCursor.end).split(spaceMarker).length - 1;
 
       // debugPrint('diff: ${baseOffset - _previousCursorPosition}');
 
-      final spaceBeforeTagCount = text.substring(0, matchWithCursor.start).split(spaceMarker).length - 1;
+      final spaceBeforeTagCount =
+          text.substring(0, matchWithCursor.start).split(spaceMarker).length -
+              1;
 
-      // The cursor is inside a tag.      
+      // The cursor is inside a tag.
       if (baseOffsetDifference.abs() == 1) {
         // The user probably moved into the tag with the arrow keys.
         // Move the cursor to the other side.
         // This is not flawless, as the user could have moved into the tag
         // by some other means, but this is the most common case.
 
-        final setOffset = baseOffsetDifference == 1 ? (matchWithCursor.end - matchspaceMarkerBaseCount) : (matchWithCursor.start - spaceBeforeTagCount);
+        final setOffset = baseOffsetDifference == 1
+            ? (matchWithCursor.end - matchspaceMarkerBaseCount)
+            : (matchWithCursor.start - spaceBeforeTagCount);
 
         // debugPrint("IN HERE ${baseOffsetDifference == 1} ${matchWithCursor.end} ${matchWithCursor.start} $matchspaceMarkerBaseCount $spaceBeforeTagCount :: $setOffset");
 
         _shouldIgnoreCursorChange = true;
-        selection = TextSelection.collapsed(
-          offset: setOffset
-        );
+        selection = TextSelection.collapsed(offset: setOffset);
         setPreviousCursorPosition();
         return;
       }
@@ -353,9 +365,11 @@ class TagTextEditingController<T> extends TextEditingController {
 
 //      debugPrint("ZZZ ${matchWithCursor.end} $matchspaceMarkerBaseCount ${matchWithCursor.start}");
 
-      final areInsideTag = (baseOffset > matchWithCursor.start - matchspaceMarkerBaseCount) && (baseOffset < matchWithCursor.end - matchspaceMarkerBaseCount - 1);
+      final areInsideTag = (baseOffset >
+              matchWithCursor.start - matchspaceMarkerBaseCount) &&
+          (baseOffset < matchWithCursor.end - matchspaceMarkerBaseCount - 1);
 
-  //    debugPrint('areInsideTag: $areInsideTag ||| $baseOffset ${matchWithCursor.end - matchspaceMarkerBaseCount - 1} ${matchWithCursor.start} --- $matchspaceMarkerBaseCount');
+      //    debugPrint('areInsideTag: $areInsideTag ||| $baseOffset ${matchWithCursor.end - matchspaceMarkerBaseCount - 1} ${matchWithCursor.start} --- $matchspaceMarkerBaseCount');
 
       _shouldIgnoreCursorChange = true;
       selection = TextSelection.collapsed(
@@ -367,14 +381,17 @@ class TagTextEditingController<T> extends TextEditingController {
     } else {
       // Check if the selection covers a tag
       final matchWithExtent = tagMatches
-          .where(
-              (match) => match.start < adjustedExtentOffset && match.end >= adjustedExtentOffset)
+          .where((match) =>
+              match.start < adjustedExtentOffset &&
+              match.end >= adjustedExtentOffset)
           .firstOrNull;
 
-
       allMatches = tagMatches
-        .where((match) => match.start < max(adjustedOffset, adjustedExtentOffset) && match.end > min(adjustedOffset, adjustedExtentOffset) + 1)
-        .map((match) => _tagBackendFormatsToTaggables[match.group(0)!] as T).toList();
+          .where((match) =>
+              match.start < max(adjustedOffset, adjustedExtentOffset) &&
+              match.end > min(adjustedOffset, adjustedExtentOffset) + 1)
+          .map((match) => _tagBackendFormatsToTaggables[match.group(0)!] as T)
+          .toList();
 
       final baseBeforeExtent = baseOffset < extentOffset;
 
@@ -384,16 +401,25 @@ class TagTextEditingController<T> extends TextEditingController {
         return;
       }
 
-      final spaceBeforeExtentStartTagCount = text.substring(0, matchWithExtent.start).split(spaceMarker).length - 1;
-      final spaceBeforeExtentEndTagCount = text.substring(0, matchWithExtent.end).split(spaceMarker).length - 1;
+      final spaceBeforeExtentStartTagCount =
+          text.substring(0, matchWithExtent.start).split(spaceMarker).length -
+              1;
+      final spaceBeforeExtentEndTagCount =
+          text.substring(0, matchWithExtent.end).split(spaceMarker).length - 1;
 
-      debugPrint("ALL MATCHES AND START/END: ${tagMatches.map((match) => "${match.group(0)} ${match.start} ${match.end}").toList()}");
-      debugPrint("EXTENT OFFSET: $adjustedOffset $adjustedExtentOffset ${matchWithExtent?.group(0)}");   
-      debugPrint("ALL MATCHES: ${allMatches.map((t) => toFrontendConverter(t)).toList()}");
+      debugPrint(
+          "ALL MATCHES AND START/END: ${tagMatches.map((match) => "${match.group(0)} ${match.start} ${match.end}").toList()}");
+      debugPrint(
+          "EXTENT OFFSET: $adjustedOffset $adjustedExtentOffset ${matchWithExtent.group(0)}");
+      debugPrint(
+          "ALL MATCHES: ${allMatches.map((t) => toFrontendConverter(t)).toList()}");
       debugPrint('extentOffsetDifference: $extentOffsetDifference');
-      debugPrint('matchWithExtent: ${matchWithExtent.group(0)} ${matchWithExtent.start} ${matchWithExtent.end}');
-      debugPrint('baseBeforeExtent: $baseBeforeExtent $baseOffset $extentOffset');      
-      debugPrint('spaceBeforeExtentTagCount: $spaceBeforeExtentStartTagCount $spaceBeforeExtentEndTagCount');
+      debugPrint(
+          'matchWithExtent: ${matchWithExtent.group(0)} ${matchWithExtent.start} ${matchWithExtent.end}');
+      debugPrint(
+          'baseBeforeExtent: $baseBeforeExtent $baseOffset $extentOffset');
+      debugPrint(
+          'spaceBeforeExtentTagCount: $spaceBeforeExtentStartTagCount $spaceBeforeExtentEndTagCount');
 
       if (extentOffsetDifference.abs() == 1) {
         int newExtentOffset;
@@ -401,7 +427,8 @@ class TagTextEditingController<T> extends TextEditingController {
           if (extentOffsetDifference == 1) {
             // SELECTING LEFT TO RIGHT
             //debugPrint("IN HERE A ${matchWithExtent.end} $spaceBeforeExtentEndTagCount");
-            newExtentOffset = matchWithExtent.end - spaceBeforeExtentEndTagCount;
+            newExtentOffset =
+                matchWithExtent.end - spaceBeforeExtentEndTagCount;
           } else {
             // UNSELECTING RIGHT TO LEFT
             //debugPrint("IN HERE B ${matchWithExtent.start} $spaceMarkerBaseCount");
@@ -411,15 +438,17 @@ class TagTextEditingController<T> extends TextEditingController {
           if (extentOffsetDifference == 1) {
             // UNSELECTING LEFT TO RIGHT
             //debugPrint("IN HERE C ${matchWithExtent.end} $spaceBeforeExtentEndTagCount");
-            newExtentOffset = matchWithExtent.end - spaceBeforeExtentEndTagCount;
+            newExtentOffset =
+                matchWithExtent.end - spaceBeforeExtentEndTagCount;
           } else {
             // SELECTING RIGHT TO LEFT
             //debugPrint("IN HERE D ${matchWithExtent.start} $spaceBeforeExtentStartTagCount");
-            newExtentOffset = matchWithExtent.start - spaceBeforeExtentStartTagCount;
+            newExtentOffset =
+                matchWithExtent.start - spaceBeforeExtentStartTagCount;
           }
         }
-        
-        _shouldIgnoreCursorChange = true; 
+
+        _shouldIgnoreCursorChange = true;
         selection = TextSelection(
           baseOffset: baseOffset,
           extentOffset: newExtentOffset,
@@ -428,9 +457,12 @@ class TagTextEditingController<T> extends TextEditingController {
         return;
       }
 
-      final areInsideTag = (extentOffset > matchWithExtent.start - spaceBeforeExtentEndTagCount) && (extentOffset < matchWithExtent.end - spaceBeforeExtentEndTagCount);
+      final areInsideTag = (extentOffset >
+              matchWithExtent.start - spaceBeforeExtentEndTagCount) &&
+          (extentOffset < matchWithExtent.end - spaceBeforeExtentEndTagCount);
 
-      debugPrint('areInsideTag: $areInsideTag ||| $extentOffset ${matchWithExtent.end - spaceBeforeExtentEndTagCount - 1} ${matchWithExtent.start} --- $spaceBeforeExtentStartTagCount $spaceBeforeExtentEndTagCount');
+      debugPrint(
+          'areInsideTag: $areInsideTag ||| $extentOffset ${matchWithExtent.end - spaceBeforeExtentEndTagCount - 1} ${matchWithExtent.start} --- $spaceBeforeExtentStartTagCount $spaceBeforeExtentEndTagCount');
 
       _shouldIgnoreCursorChange = true;
       selection = TextSelection.collapsed(
@@ -451,7 +483,7 @@ class TagTextEditingController<T> extends TextEditingController {
     }
     final int currentPos = selection.baseOffset;
     if (currentPos == -1) return null;
-    
+
     // Get the last position of a tag prefix before the cursor
     int tagStartPosition = text.substring(0, currentPos).lastIndexOf(
           RegExp(tagStyles.map((style) => style.prefix).join('|')),
@@ -470,21 +502,79 @@ class TagTextEditingController<T> extends TextEditingController {
     return (tagStyle.prefix, query.substring(tagStyle.prefix.length));
   }
 
+  /// Checks if a tag query represents a valid, complete tag.
+  ///
+  /// Returns true if the query exactly matches an available taggable.
+  Future<bool> _isValidTagQuery(String prefix, String query) async {
+    if (query.isEmpty) return false;
+    final results = await searchTaggables(prefix, query);
+    return results.any((taggable) =>
+        toFrontendConverter(taggable).toLowerCase() == query.toLowerCase());
+  }
+
+  /// Handles smart backspace behavior for tag queries.
+  ///
+  /// If the current tag query is valid (exactly matches a taggable),
+  /// the entire tag is deleted. Otherwise, normal character deletion occurs.
+  Future<void> _handleSmartBackspace() async {
+    // Find the current tag query at cursor position
+    int lastTagIndex = -1000;
+    String? lastTag;
+    String? tagPrefix;
+
+    for (var tagStyle in tagStyles) {
+      final index =
+          text.substring(0, selection.baseOffset).lastIndexOf(tagStyle.prefix);
+      if (index != -1 && index > lastTagIndex) {
+        lastTagIndex = index;
+        lastTag = text.substring(lastTagIndex, selection.baseOffset);
+        tagPrefix = tagStyle.prefix;
+      }
+    }
+
+    if (lastTag == null || tagPrefix == null || lastTagIndex == -1000) {
+      // No tag query found, let normal backspace behavior handle it
+      return;
+    }
+
+    // Extract the query part (without prefix)
+    final query = lastTag.substring(tagPrefix.length);
+
+    // Check if this query represents a valid, complete tag
+    final isValid = await _isValidTagQuery(tagPrefix, query);
+
+    if (isValid) {
+      // Delete the entire valid tag
+      value = TextEditingValue(
+        text: text.replaceRange(lastTagIndex, selection.baseOffset, ''),
+        selection: TextSelection.collapsed(offset: lastTagIndex),
+      );
+    }
+    // If not valid, do nothing - let normal backspace behavior handle single character deletion
+  }
+
   /// A listener that ensures that that tags are recognisable.
   ///
   /// If a tag is not recognisable, it is assumed to be invalid and is removed.
   /// This happens for example when the user backspaces over a tag or adds a
   /// character to the end of a tag that results in the regular expression not
   /// matching the tag anymore.
-  void _checkTagRecognizabilityController() {
+  void _checkTagRecognizabilityController() async {
     debugPrint('checkTagRecognizabilityController');
-    // First, check for tags that are still detected but not valid
 
+    // Handle smart backspace behavior for tag queries
+    if (didPressDeleteKey) {
+      await _handleSmartBackspace();
+      return;
+    }
+
+    // First, check for tags that are still detected but not valid
     int lastTagIndex = -1000;
     String? lastTag;
 
     for (var tagStyle in tagStyles) {
-      final index = text.substring(0, selection.baseOffset).lastIndexOf(tagStyle.prefix);
+      final index =
+          text.substring(0, selection.baseOffset).lastIndexOf(tagStyle.prefix);
       if (index != -1 && index > lastTagIndex) {
         lastTagIndex = index;
         lastTag = text.substring(lastTagIndex, selection.baseOffset);
@@ -499,7 +589,7 @@ class TagTextEditingController<T> extends TextEditingController {
       debugPrint('match: ${match.group(0)}');
       // If the match can be parsed as a tag, it is valid
       if (_parseTagString(match.group(0)!) != null) continue;
-      
+
       // The tag is not recognisable, so it is invalid
       // Check if the match is a superstring of a valid tag
       final originalTag = _tagBackendFormatsToTaggables.keys
@@ -512,7 +602,7 @@ class TagTextEditingController<T> extends TextEditingController {
         // The tag is not a superstring of a valid tag, nor is it a valid tag
         // It is still detected by the regular expression, so it must have been
         // trimmed at the end. Check if it is a valid tag without the last char
-        final missesFinalCharacter = match.group(0)!.startsWith(lastTag!);
+        final missesFinalCharacter = match.group(0)!.startsWith(lastTag);
         // If the final character is missing, remove the tag.
         // Otherwise, the user is probably still typing the tag.
 
@@ -524,7 +614,8 @@ class TagTextEditingController<T> extends TextEditingController {
 
         if (missesFinalCharacter) {
           value = TextEditingValue(
-            text: text.replaceRange(lastTagIndex, lastTagIndex + lastTag.length, ''),
+            text: text.replaceRange(
+                lastTagIndex, lastTagIndex + lastTag.length, ''),
             selection: TextSelection.collapsed(offset: lastTagIndex),
           );
         }
@@ -551,7 +642,7 @@ class TagTextEditingController<T> extends TextEditingController {
     // Next, check for tags that have been broken by trimming at the start
     // For these tags, the prefix is missing its first character
     // final brokenTags = _tagBackendFormatsToTaggables.keys.expand((key) {
-    //   // Create a regexp that matches occurences of 'key' without the first
+    //   // Create a regexp that matches occurrences of 'key' without the first
     //   // character. e.g. if 'key' is '@tag', the regexp should match 'tag'
     //   // but not '@tag'.
     //   final pattern = '(?<!${key.substring(0, 1)})${key.substring(1)}';
@@ -581,14 +672,16 @@ class TagTextEditingController<T> extends TextEditingController {
   ///
   /// Insertion typically replaces any tag prompt with the taggable. The number
   /// of characters to replace is given by [charactersToReplace].
-  void insertTaggable(String prefix, T taggable, int charactersToReplace, {bool addSpace = false}) {
+  void insertTaggable(String prefix, T taggable, int charactersToReplace,
+      {bool addSpace = false}) {
     final tagStyle = tagStyles.where((style) => prefix == style.prefix).first;
     final tag = Tag<T>(taggable: taggable, style: tagStyle);
     final tagText = tag.toModifiedString(
-      toFrontendConverter,
-      toBackendConverter,
-      isFrontend: false,
-    ) + (addSpace ? " " : '');
+          toFrontendConverter,
+          toBackendConverter,
+          isFrontend: false,
+        ) +
+        (addSpace ? " " : '');
 
     _tagBackendFormatsToTaggables[tagText] = taggable;
 
