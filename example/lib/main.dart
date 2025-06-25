@@ -237,20 +237,23 @@ class _HomePageState extends State<HomePage> {
   /// You can specify different behaviour based on the tag prefix.
   Future<Iterable<Taggable>> searchTaggables(
       String tagPrefix, String? tagName) async {
-    if (tagName == null || tagName.isEmpty) {
-      return [];
-    }
     return switch (tagPrefix) {
-      '@' => users
-          .where((user) =>
-              user.name.toLowerCase().startsWith(tagName.toLowerCase()))
-          .toList(),
-      '#' => topics
-          .where((topic) =>
-              topic.name.toLowerCase().startsWith(tagName.toLowerCase()))
-          .toList(),
-      'all:' => [...users, ...topics].where((taggable) =>
-          taggable.name.toLowerCase().startsWith(tagName.toLowerCase())),
+      '@' => tagName == null || tagName.isEmpty
+          ? users // Show all users when no search term (e.g., just "@")
+          : users
+              .where((user) =>
+                  user.name.toLowerCase().startsWith(tagName.toLowerCase()))
+              .toList(),
+      '#' => tagName == null || tagName.isEmpty
+          ? topics // Show all topics when no search term (e.g., just "#")
+          : topics
+              .where((topic) =>
+                  topic.name.toLowerCase().startsWith(tagName.toLowerCase()))
+              .toList(),
+      'all:' => tagName == null || tagName.isEmpty
+          ? [...users, ...topics] // Show all taggables when no search term
+          : [...users, ...topics].where((taggable) =>
+              taggable.name.toLowerCase().startsWith(tagName.toLowerCase())),
       _ => [],
     };
   }
