@@ -102,7 +102,14 @@ class _HomePageState extends State<HomePage> {
       toFrontendConverter: (taggable) => taggable.name,
       toBackendConverter: (taggable) => taggable.id,
       textStyleBuilder: textStyleBuilder,
-      tagStyles: [TagStyle(prefix: '@', showPrefix: false, tagColor: Colors.blue, highlightTagColor: Colors.red, onTapped: (taggable) => debugPrint('Tapped ${taggable.name}')), const TagStyle(prefix: '#', showPrefix: false, tagColor: Colors.green, highlightTagColor: Colors.red)],
+      tagStyles: [
+        TagStyle(
+            prefix: '@',
+            showPrefix: false,
+            tagColor: Colors.blue,
+            highlightTagColor: Colors.red,
+            onTapped: (taggable) => debugPrint('Tapped ${taggable.name}'))
+      ],
     );
 
     // Add a listener to update the [backendFormat] when the text changes.
@@ -129,13 +136,9 @@ class _HomePageState extends State<HomePage> {
     // }
     return switch (prefix) {
       '@' => const TextStyle(
-          color: Colors.white,
-          height: 1.6,
-          fontWeight: FontWeight.bold),
+          color: Colors.white, height: 1.6, fontWeight: FontWeight.bold),
       '#' => const TextStyle(
-          color: Colors.white,
-          height: 1.6,
-          fontWeight: FontWeight.bold),
+          color: Colors.white, height: 1.6, fontWeight: FontWeight.bold),
       _ => null,
     };
   }
@@ -301,8 +304,8 @@ class _HomePageState extends State<HomePage> {
                     maxLines: 4,
                     style: const TextStyle(height: 1.8),
                     decoration: InputDecoration(
-                      hintText: 'Type @ to tag a user or # to tag a topic',
-                      helperText: 'Backend format: $backendFormat',                      
+                      hintText: 'Type @ to tag a user',
+                      helperText: 'Backend format: $backendFormat',
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.send),
                         onPressed: () async {
