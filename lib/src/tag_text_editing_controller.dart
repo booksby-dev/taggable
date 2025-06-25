@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'constants/constants.dart';
 import 'utils/tag_style.dart';
@@ -31,12 +30,10 @@ class TagTextEditingController<T> extends TextEditingController {
     this.tagStyles = const [TagStyle()],
   }) : super() {
     addListener(taggingListeners);
-    ServicesBinding.instance.keyboard.addHandler(_onKey);
   }
 
   @override
   void dispose() {
-    ServicesBinding.instance.keyboard.removeHandler(_onKey);
     removeListener(taggingListeners);
     super.dispose();
   }
@@ -49,11 +46,6 @@ class TagTextEditingController<T> extends TextEditingController {
 
   /// A listener that triggers all tagging-related listeners.
   void taggingListeners() {
-    if (didPressDeleteKey) {
-      didPressDeleteKey = false;
-      _checkTagRecognizabilityController();
-    }
-    //_checkTagRecognizabilityController();
     _cursorController();
     final query = _checkTagQueryController();
 
@@ -107,20 +99,6 @@ class TagTextEditingController<T> extends TextEditingController {
         .join('|');
 
     return RegExp(pattern).allMatches(text);
-  }
-
-  bool didPressDeleteKey = false;
-
-  bool _onKey(KeyEvent event) {
-    final key = event.logicalKey.keyId;
-
-    // delete key
-    if (event is KeyDownEvent) {
-      if (key == 4294967304) {
-        didPressDeleteKey = true;
-      }
-    }
-    return false;
   }
 
   /// Sets the initial text of the text field, converting backend strings to taggables.
@@ -500,161 +478,6 @@ class TagTextEditingController<T> extends TextEditingController {
     final tagStyle =
         tagStyles.where((style) => query.startsWith(style.prefix)).first;
     return (tagStyle.prefix, query.substring(tagStyle.prefix.length));
-  }
-
-  /// Checks if a tag query represents a valid, complete tag.
-  ///
-  /// Returns true if the query exactly matches an available taggable.
-  Future<bool> _isValidTagQuery(String prefix, String query) async {
-    if (query.isEmpty) return false;
-    final results = await searchTaggables(prefix, query);
-    return results.any((taggable) =>
-        toFrontendConverter(taggable).toLowerCase() == query.toLowerCase());
-  }
-
-  /// Handles smart backspace behavior for tag queries.
-  ///
-  /// If the current tag query is valid (exactly matches a taggable),
-  /// the entire tag is deleted. Otherwise, normal character deletion occurs.
-  Future<void> _handleSmartBackspace() async {
-    // Find the current tag query at cursor position
-    int lastTagIndex = -1000;
-    String? lastTag;
-    String? tagPrefix;
-
-    for (var tagStyle in tagStyles) {
-      final index =
-          text.substring(0, selection.baseOffset).lastIndexOf(tagStyle.prefix);
-      if (index != -1 && index > lastTagIndex) {
-        lastTagIndex = index;
-        lastTag = text.substring(lastTagIndex, selection.baseOffset);
-        tagPrefix = tagStyle.prefix;
-      }
-    }
-
-    if (lastTag == null || tagPrefix == null || lastTagIndex == -1000) {
-      // No tag query found, let normal backspace behavior handle it
-      return;
-    }
-
-    // Extract the query part (without prefix)
-    final query = lastTag.substring(tagPrefix.length);
-
-    // Check if this query represents a valid, complete tag
-    final isValid = await _isValidTagQuery(tagPrefix, query);
-
-    if (isValid) {
-      // Delete the entire valid tag
-      value = TextEditingValue(
-        text: text.replaceRange(lastTagIndex, selection.baseOffset, ''),
-        selection: TextSelection.collapsed(offset: lastTagIndex),
-      );
-    }
-    // If not valid, do nothing - let normal backspace behavior handle single character deletion
-  }
-
-  /// A listener that ensures that that tags are recognisable.
-  ///
-  /// If a tag is not recognisable, it is assumed to be invalid and is removed.
-  /// This happens for example when the user backspaces over a tag or adds a
-  /// character to the end of a tag that results in the regular expression not
-  /// matching the tag anymore.
-  void _checkTagRecognizabilityController() async {
-    debugPrint('checkTagRecognizabilityController');
-
-    // Handle smart backspace behavior for tag queries
-    if (didPressDeleteKey) {
-      await _handleSmartBackspace();
-      return;
-    }
-
-    // First, check for tags that are still detected but not valid
-    int lastTagIndex = -1000;
-    String? lastTag;
-
-    for (var tagStyle in tagStyles) {
-      final index =
-          text.substring(0, selection.baseOffset).lastIndexOf(tagStyle.prefix);
-      if (index != -1 && index > lastTagIndex) {
-        lastTagIndex = index;
-        lastTag = text.substring(lastTagIndex, selection.baseOffset);
-      }
-    }
-
-    if (lastTag == null) {
-      return;
-    }
-
-    for (final match in _getTagMatches(text)) {
-      debugPrint('match: ${match.group(0)}');
-      // If the match can be parsed as a tag, it is valid
-      if (_parseTagString(match.group(0)!) != null) continue;
-
-      // The tag is not recognisable, so it is invalid
-      // Check if the match is a superstring of a valid tag
-      final originalTag = _tagBackendFormatsToTaggables.keys
-          .where((key) => match.group(0)!.contains(key))
-          .firstOrNull;
-
-      debugPrint('originalTag: $originalTag');
-
-      if (originalTag == null) {
-        // The tag is not a superstring of a valid tag, nor is it a valid tag
-        // It is still detected by the regular expression, so it must have been
-        // trimmed at the end. Check if it is a valid tag without the last char
-        final missesFinalCharacter = match.group(0)!.startsWith(lastTag);
-        // If the final character is missing, remove the tag.
-        // Otherwise, the user is probably still typing the tag.
-
-        debugPrint('missesFinalCharacter: $missesFinalCharacter');
-        debugPrint('previousCursorPosition: $_previousCursorPosition');
-        debugPrint('match.end: ${match.end}');
-        debugPrint('lastTag: $lastTag');
-        debugPrint('lastTagIndex: $lastTagIndex');
-
-        if (missesFinalCharacter) {
-          value = TextEditingValue(
-            text: text.replaceRange(
-                lastTagIndex, lastTagIndex + lastTag.length, ''),
-            selection: TextSelection.collapsed(offset: lastTagIndex),
-          );
-        }
-        continue;
-      }
-
-      final taggable = _tagBackendFormatsToTaggables[originalTag] as T;
-      final tagStyle = tagStyles
-          .where((style) => originalTag.startsWith(style.prefix))
-          .first;
-      final tagFrontendFormat = toFrontendConverter(taggable);
-      final replacement = tagStyle.prefix + tagFrontendFormat;
-
-      // Break the tag by replacing the tagValue with the tagFrontendFormat
-      // This ensures the user sees the same text as before, without the tag
-      value = TextEditingValue(
-        text: text.replaceFirst(originalTag, replacement, match.start),
-        selection: TextSelection.collapsed(
-          offset:
-              selection.baseOffset - originalTag.length + replacement.length,
-        ),
-      );
-    }
-    // Next, check for tags that have been broken by trimming at the start
-    // For these tags, the prefix is missing its first character
-    // final brokenTags = _tagBackendFormatsToTaggables.keys.expand((key) {
-    //   // Create a regexp that matches occurrences of 'key' without the first
-    //   // character. e.g. if 'key' is '@tag', the regexp should match 'tag'
-    //   // but not '@tag'.
-    //   final pattern = '(?<!${key.substring(0, 1)})${key.substring(1)}';
-    //   return RegExp(pattern).allMatches(text);
-    // });
-    // for (final brokenTag in brokenTags) {
-    //   // Remove the entire tag. The selection can remain the same.
-    //   value = TextEditingValue(
-    //     text: text.replaceRange(brokenTag.start, brokenTag.end, ''),
-    //     selection: TextSelection.collapsed(offset: brokenTag.start),
-    //   );
-    // }
   }
 
   /// A listener that searches for taggables based on the current tag prompt.
